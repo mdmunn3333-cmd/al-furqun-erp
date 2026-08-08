@@ -48,8 +48,12 @@
 
     <!-- Main ERP Container -->
     <div id="erp-container" style="display: none; width: 100%;">
+        
+        <!-- Mobile Toggle Button -->
+        <button id="menu-toggle-btn" class="menu-toggle-btn">☰</button>
+
         <!-- Sidebar Navigation -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <h2>Al Furqun</h2>
             <ul>
                 <li><a href="#" class="nav-link active" data-target="dashboard-section">Dashboard</a></li>
@@ -87,7 +91,7 @@
                     </div>
                 </div>
 
-                <!-- Add New Order Form (Expanded with all fields) -->
+                <!-- Add New Order Form -->
                 <div class="form-section">
                     <h2>Add New Order (Complete Details)</h2>
                     <form id="order-form">
