@@ -1,335 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Al Furqun - ERP System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Al-Furqun ERP & Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Login Container -->
-    <div id="login-container" class="login-container">
-        <div id="login-box" class="login-box popup-animation">
-            <h2>Al Furqun ERP</h2>
-            <p>Please login to your account</p>
-            <form id="login-form">
-                <input type="email" id="login-email" placeholder="Enter Email" required>
-                <input type="password" id="login-password" placeholder="Enter Password" required>
-                <button type="submit">Login</button>
-                <p id="login-error" class="error-msg">Invalid Email or Password!</p>
-            </form>
-            <div class="login-links">
-                <a href="#" id="forgot-password-link">Forgot Password?</a>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <h2>Dashboard Overview</h2>
+            <button id="admin-btn" class="admin-btn">Admin</button>
+        </header>
+
+        <!-- Cards Section (Updated with Total Profit and Total Loss) -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total Orders</h3>
+                <p id="total-orders">0</p>
+            </div>
+            <div class="card">
+                <h3>Total Sales</h3>
+                <p id="total-sales">৳ 0</p>
+            </div>
+            <div class="card" style="border-left-color: #10b981;">
+                <h3>Total Profit</h3>
+                <p id="total-profit" style="color: #10b981;">৳ 0</p>
+            </div>
+            <div class="card" style="border-left-color: #ef4444;">
+                <h3>Total Loss</h3>
+                <p id="total-loss" style="color: #ef4444;">৳ 0</p>
             </div>
         </div>
 
-        <!-- Forgot Password Box -->
-        <div id="forgot-box" class="login-box popup-animation" style="display: none;">
-            <h2>Reset Password</h2>
-            <p>Enter your email to receive a reset code</p>
-            <form id="forgot-email-form">
-                <input type="email" id="reset-email" placeholder="Enter Registered Email" required>
-                <button type="submit">Send Reset Code</button>
-                <p id="forgot-error" class="error-msg">Email not found!</p>
-            </form>
-            <form id="reset-code-form" style="display: none;">
-                <input type="text" id="verification-code" placeholder="Enter 4-Digit Code (e.g. 1234)" required>
-                <input type="password" id="new-password" placeholder="Enter New Password" required>
-                <button type="submit">Update Password</button>
-                <p id="code-error" class="error-msg">Invalid Code!</p>
-            </form>
-            <div class="login-links">
-                <a href="#" id="back-to-login-link">Back to Login</a>
+        <!-- Recent Orders Table Section -->
+        <div class="table-section">
+            <h3>Recent Orders</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Profit</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-table-body">
+                        <!-- Dynamic Order Rows Will Come Here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Main ERP Container -->
-    <div id="erp-container" style="display: none; width: 100%;">
-        
-        <!-- Mobile Toggle Button -->
-        <button id="menu-toggle-btn" class="menu-toggle-btn">☰</button>
-
-        <!-- Sidebar Navigation -->
-        <div class="sidebar" id="sidebar">
-            <h2>Al Furqun</h2>
-            <ul>
-                <li><a href="#" class="nav-link active" data-target="dashboard-section">Dashboard</a></li>
-                <li><a href="#" class="nav-link" data-target="orders-section">Orders Management</a></li>
-                <li><a href="#" class="nav-link" data-target="products-section">Products</a></li>
-                <li><a href="#" class="nav-link" data-target="customers-section">Customers</a></li>
-                <li><a href="#" class="nav-link" data-target="settings-section">Settings</a></li>
-                <li><a href="#" id="logout-btn" style="color: #ef4444; margin-top: 30px;">Logout</a></li>
-            </ul>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="main-content">
-            <header>
-                <h1 id="page-title">Dashboard Overview</h1>
-                <div class="user-profile">
-                    <span>Admin</span>
-                </div>
-            </header>
-
-            <!-- 1. Dashboard Section -->
-            <div id="dashboard-section" class="content-section">
-                <div class="cards">
-                    <div class="card">
-                        <h3>Total Orders</h3>
-                        <p id="total-orders">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Total Sales</h3>
-                        <p id="total-sales">৳ 0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Final Net Profit</h3>
-                        <p id="total-profit">৳ 0</p>
-                    </div>
-                </div>
-
-                <!-- Add New Order Form -->
-                <div class="form-section">
-                    <h2>Add New Order (Complete Details)</h2>
-                    <form id="order-form">
-                        <div class="form-grid">
-                            <div class="form-field">
-                                <label>Date</label>
-                                <input type="date" id="order-date" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Order ID</label>
-                                <input type="text" id="order-id" placeholder="e.g. AF-1001" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Source</label>
-                                <select id="order-source" required>
-                                    <option value="">Select Source</option>
-                                    <option value="Page">Page</option>
-                                    <option value="Marketplace">Marketplace</option>
-                                    <option value="Phone">Phone</option>
-                                    <option value="Tiktok">Tiktok</option>
-                                    <option value="Whatsapp">Whatsapp</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>Customer Name</label>
-                                <input type="text" id="customer-name" placeholder="Customer Name" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Phone</label>
-                                <input type="text" id="customer-phone" placeholder="Phone Number" required>
-                            </div>
-                            <div class="form-field" style="grid-column: span 2;">
-                                <label>Address</label>
-                                <input type="text" id="customer-address" placeholder="Full Delivery Address" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Product Name</label>
-                                <input type="text" id="product-name" placeholder="Product Name" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Quantity</label>
-                                <input type="number" id="product-qty" value="1" min="1" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Supplier</label>
-                                <select id="supplier-name" required>
-                                    <option value="">Select Supplier</option>
-                                    <option value="Amarsell">Amarsell</option>
-                                    <option value="iuddokta">iuddokta</option>
-                                    <option value="Greenish">Greenish</option>
-                                    <option value="Selfshop">Selfshop</option>
-                                    <option value="Shopbase">Shopbase</option>
-                                    <option value="Dropshopper">Dropshopper</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>Buy Price (৳)</label>
-                                <input type="number" id="buy-price" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Sell Price (৳)</label>
-                                <input type="number" id="sell-price" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Delivery Charge (৳)</label>
-                                <input type="number" id="delivery-charge" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Courier Cost (৳)</label>
-                                <input type="number" id="courier-cost" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Packaging Cost (৳)</label>
-                                <input type="number" id="packaging-cost" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Customer Paid (৳)</label>
-                                <input type="number" id="customer-paid" placeholder="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Return Status</label>
-                                <select id="return-status" onchange="toggleReturnFields()">
-                                    <option value="NO">NO</option>
-                                    <option value="YES">YES</option>
-                                </select>
-                            </div>
-                            <div class="form-field return-dependent" style="display: none;">
-                                <label>Return Reason</label>
-                                <input type="text" id="return-reason" placeholder="Reason for return">
-                            </div>
-                            <div class="form-field return-dependent" style="display: none;">
-                                <label>Return Cost (৳)</label>
-                                <input type="number" id="return-cost" placeholder="0" value="0">
-                            </div>
-                            <div class="form-field">
-                                <label>Tracking ID</label>
-                                <input type="text" id="tracking-id" placeholder="Courier Tracking ID">
-                            </div>
-                            <div class="form-field">
-                                <label>Courier Company</label>
-                                <select id="courier-company">
-                                    <option value="">Select Courier</option>
-                                    <option value="Steadfast">Steadfast</option>
-                                    <option value="Pathao">Pathao</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>Customer Status</label>
-                                <select id="customer-status">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="On Hold">On Hold</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="submit-btn" style="margin-top: 20px;">Save Order & Calculate Profit</button>
-                    </form>
-                </div>
-
-                <!-- Recent Orders Table -->
-                <div class="table-section">
-                    <h2>Recent Orders Summary</h2>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date & ID</th>
-                                    <th>Customer & Source</th>
-                                    <th>Product & Qty</th>
-                                    <th>Financials (Buy/Sell/Paid)</th>
-                                    <th>Final Profit</th>
-                                    <th>Status & Courier</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="order-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Orders Management Section -->
-            <div id="orders-section" class="content-section" style="display: none;">
-                <div class="table-section">
-                    <h2>All Orders Database</h2>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Order ID</th>
-                                    <th>Source</th>
-                                    <th>Customer Info</th>
-                                    <th>Product</th>
-                                    <th>Supplier</th>
-                                    <th>Buy/Sell</th>
-                                    <th>Costs (Del/Cour/Pack)</th>
-                                    <th>Paid & Profit</th>
-                                    <th>Return Info</th>
-                                    <th>Courier & Tracking</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="all-orders-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Products Section -->
-            <div id="products-section" class="content-section" style="display: none;">
-                <div class="form-section">
-                    <h2>Add New Product Stock</h2>
-                    <form id="product-form">
-                        <div class="form-group">
-                            <input type="text" id="p-name" placeholder="Product Name" required>
-                            <input type="number" id="p-buy" placeholder="Buying Price (৳)" required>
-                            <input type="number" id="p-sell" placeholder="Selling Price (৳)" required>
-                            <input type="number" id="p-stock" placeholder="Stock Quantity" required>
-                            <button type="submit">Add Product</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="table-section">
-                    <h2>Product Stock List</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Buying Price</th>
-                                <th>Selling Price</th>
-                                <th>Stock Qty</th>
-                            </tr>
-                        </thead>
-                        <tbody id="product-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 4. Customers Section -->
-            <div id="customers-section" class="content-section" style="display: none;">
-                <div class="table-section">
-                    <h2>Customer Database</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Customer Name</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Total Orders</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customer-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 5. Settings Section -->
-            <div id="settings-section" class="content-section" style="display: none;">
-                <div class="form-section" style="max-width: 500px;">
-                    <h2>Change Login Credentials</h2>
-                    <form id="settings-form">
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-size: 13px; color: #64748b; display: block; margin-bottom: 5px;">New Email Address</label>
-                            <input type="email" id="settings-new-email" placeholder="Enter new email" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;" required>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-size: 13px; color: #64748b; display: block; margin-bottom: 5px;">New Password</label>
-                            <input type="password" id="settings-new-password" placeholder="Enter new password" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;" required>
-                        </div>
-                        <button type="submit" style="background: #38bdf8; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;">Update Credentials</button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
+    <!-- Hidden Sections / Modals or Extra Tabs can go here -->
+    <div style="display:none;">
+        <!-- Hidden elements if required by script selectors -->
+        <form id="order-form"></form>
+        <tbody id="all-orders-table-body"></tbody>
+        <form id="product-form"></form>
+        <tbody id="product-table-body"></tbody>
+        <tbody id="customer-table-body"></tbody>
     </div>
 
     <script src="script.js"></script>
