@@ -9,7 +9,8 @@ body {
     display: flex;
     background-color: #f8f9fa;
     color: #333;
-    height: 100vh;
+    min-height: 100vh;
+    flex-direction: row;
 }
 
 @keyframes popup {
@@ -28,14 +29,16 @@ body {
     justify-content: center;
     align-items: center;
     background-color: #1e293b;
+    padding: 20px;
 }
 
 .login-box {
     background: white;
-    padding: 40px;
+    padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    width: 380px;
+    width: 100%;
+    max-width: 380px;
     text-align: center;
 }
 
@@ -55,8 +58,18 @@ body {
 .login-links a { color: #0284c7; font-size: 13px; text-decoration: none; }
 .login-links a:hover { text-decoration: underline; }
 
+/* Sidebar */
 .sidebar {
-    width: 260px; background: #1e293b; color: white; height: 100vh; padding: 25px; position: fixed;
+    width: 250px; 
+    background: #1e293b; 
+    color: white; 
+    min-height: 100vh; 
+    padding: 25px; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: 0.3s ease-in-out;
+    z-index: 1000;
 }
 .sidebar h2 { font-size: 22px; margin-bottom: 40px; color: #38bdf8; letter-spacing: 1px; }
 .sidebar ul { list-style: none; }
@@ -66,11 +79,34 @@ body {
 }
 .sidebar ul li a.active, .sidebar ul li a:hover { background: #334155; color: white; }
 
-.main-content {
-    margin-left: 260px; flex: 1; padding: 30px; overflow-y: auto; height: 100vh;
+/* Mobile Toggle Button */
+.menu-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #1e293b;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 1100;
 }
 
-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+/* Main Content Area */
+.main-content {
+    margin-left: 250px; 
+    flex: 1; 
+    padding: 30px; 
+    overflow-y: auto; 
+    min-height: 100vh;
+    width: calc(100% - 250px);
+    transition: 0.3s ease-in-out;
+}
+
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
 header h1 { font-size: 24px; color: #0f172a; }
 .user-profile span { background: #e2e8f0; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 500; }
 
@@ -115,6 +151,25 @@ table tr:last-child { border-bottom: none; }
 }
 .delete-btn:hover { background: #dc2626; }
 
-.form-group { display: flex; gap: 15px; }
-.form-group input { flex: 1; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
+.form-group { display: flex; gap: 15px; flex-wrap: wrap; }
+.form-group input { flex: 1; min-width: 180px; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
 .form-group button { background: #38bdf8; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+
+/* Responsive Styling for Mobile Devices */
+@media screen and (max-width: 768px) {
+    .menu-toggle-btn {
+        display: block;
+    }
+    .sidebar {
+        left: -250px; /* মোবাইলে ডিফল্টভাবে সাইডবার হাই থাকবে */
+    }
+    .sidebar.active {
+        left: 0; /* ক্লিক করলে শো করবে */
+    }
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 15px;
+        padding-top: 60px; /* টগল বাটনের জায়গার জন্য ওপরের প্যাডিং */
+    }
+}
