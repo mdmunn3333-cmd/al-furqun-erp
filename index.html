@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Furqun ERP & Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <h2>Dashboard Overview</h2>
+            <button id="admin-btn" class="admin-btn">Admin</button>
+        </header>
+
+        <!-- Cards Section (Total Profit & Total Loss Separated) -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total Orders</h3>
+                <p id="total-orders">0</p>
+            </div>
+            <div class="card">
+                <h3>Total Sales</h3>
+                <p id="total-sales">৳ 0</p>
+            </div>
+            <div class="card" style="border-left-color: #10b981;">
+                <h3>Total Profit</h3>
+                <p id="total-profit" style="color: #10b981;">৳ 0</p>
+            </div>
+            <div class="card" style="border-left-color: #ef4444;">
+                <h3>Total Loss</h3>
+                <p id="total-loss" style="color: #ef4444;">৳ 0</p>
+            </div>
+        </div>
+
+        <!-- Recent Orders Table Section -->
+        <div class="table-section">
+            <h3>Recent Orders</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Profit</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-table-body">
+                        <!-- Dynamic Order Rows Will Come Here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Sections Required for JS -->
+    <div style="display:none;">
+        <form id="order-form"></form>
+        <tbody id="all-orders-table-body"></tbody>
+        <form id="product-form"></form>
+        <tbody id="product-table-body"></tbody>
+        <tbody id="customer-table-body"></tbody>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
