@@ -8,64 +8,180 @@
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <!-- Dashboard Header -->
-        <header class="dashboard-header">
-            <h2>Dashboard Overview</h2>
-            <button id="admin-btn" class="admin-btn">Admin</button>
-        </header>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>Al-Furqun</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-link active" data-target="dashboard-section">📊 Dashboard</a></li>
+                <li><a href="#" class="menu-link" data-target="orders-section">📦 All Orders</a></li>
+                <li><a href="#" class="menu-link" data-target="add-order-section">➕ Add Order</a></li>
+                <li><a href="#" class="menu-link" data-target="products-section">🏷️ Products</a></li>
+                <li><a href="#" class="menu-link" data-target="customers-section">👥 Customers</a></li>
+            </ul>
+        </aside>
 
-        <!-- Cards Section (Total Profit & Total Loss Separated) -->
-        <div class="cards">
-            <div class="card">
-                <h3>Total Orders</h3>
-                <p id="total-orders">0</p>
-            </div>
-            <div class="card">
-                <h3>Total Sales</h3>
-                <p id="total-sales">৳ 0</p>
-            </div>
-            <div class="card" style="border-left-color: #10b981;">
-                <h3>Total Profit</h3>
-                <p id="total-profit" style="color: #10b981;">৳ 0</p>
-            </div>
-            <div class="card" style="border-left-color: #ef4444;">
-                <h3>Total Loss</h3>
-                <p id="total-loss" style="color: #ef4444;">৳ 0</p>
-            </div>
-        </div>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h2>Dashboard Overview</h2>
+                <button id="admin-btn" class="admin-btn">Admin Mode</button>
+            </header>
 
-        <!-- Recent Orders Table Section -->
-        <div class="table-section">
-            <h3>Recent Orders</h3>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date & ID</th>
-                            <th>Customer</th>
-                            <th>Product</th>
-                            <th>Amount</th>
-                            <th>Profit</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="order-table-body">
-                        <!-- Dynamic Order Rows Will Come Here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="cards">
+                    <div class="card">
+                        <h3>Total Orders</h3>
+                        <p id="total-orders">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Total Sales</h3>
+                        <p id="total-sales">৳ 0</p>
+                    </div>
+                    <div class="card" style="border-left-color: #10b981;">
+                        <h3>Total Profit</h3>
+                        <p id="total-profit" style="color: #10b981;">৳ 0</p>
+                    </div>
+                    <div class="card" style="border-left-color: #ef4444;">
+                        <h3>Total Loss</h3>
+                        <p id="total-loss" style="color: #ef4444;">৳ 0</p>
+                    </div>
+                </div>
 
-    <!-- Hidden Sections Required for JS -->
-    <div style="display:none;">
-        <form id="order-form"></form>
-        <tbody id="all-orders-table-body"></tbody>
-        <form id="product-form"></form>
-        <tbody id="product-table-body"></tbody>
-        <tbody id="customer-table-body"></tbody>
+                <div class="table-section">
+                    <h3>Recent Orders</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date & ID</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Profit</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Orders Section -->
+            <section id="orders-section" class="content-section">
+                <div class="table-section">
+                    <h3>All Orders History</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>ID</th>
+                                    <th>Source</th>
+                                    <th>Customer Info</th>
+                                    <th>Product</th>
+                                    <th>Supplier</th>
+                                    <th>Buy/Sell</th>
+                                    <th>Costs</th>
+                                    <th>Paid/Profit</th>
+                                    <th>Return</th>
+                                    <th>Courier</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-orders-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Order Section -->
+            <section id="add-order-section" class="content-section">
+                <div class="form-container">
+                    <h3>Add New Order</h3>
+                    <form id="order-form">
+                        <div class="form-grid">
+                            <input type="date" id="order-date" required>
+                            <input type="text" id="order-id" placeholder="Order ID" required>
+                            <input type="text" id="customer-name" placeholder="Customer Name" required>
+                            <input type="text" id="customer-phone" placeholder="Phone Number" required>
+                            <textarea id="customer-address" placeholder="Delivery Address" required></textarea>
+                            <input type="text" id="product-name" placeholder="Product Name" required>
+                            <input type="number" id="order-qty" placeholder="Quantity" value="1" required>
+                            <input type="number" id="buy-price" placeholder="Buy Price (Per unit)" required>
+                            <input type="number" id="sell-price" placeholder="Sell Price (Per unit)" required>
+                            <input type="number" id="delivery-charge" placeholder="Delivery Charge" value="0">
+                            <input type="number" id="courier-cost" placeholder="Courier Cost" value="0">
+                            <input type="number" id="packaging-cost" placeholder="Packaging Cost" value="0">
+                            <input type="number" id="customer-paid" placeholder="Customer Paid Advance" value="0">
+                            <select id="order-source">
+                                <option value="Facebook">Facebook</option>
+                                <option value="Website">Website</option>
+                                <option value="Phone">Phone</option>
+                            </select>
+                            <select id="order-status">
+                                <option value="Pending">Pending</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn">Save Order</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="products-section" class="content-section">
+                <div class="table-section">
+                    <h3>Product Management</h3>
+                    <form id="product-form" style="margin-bottom: 20px;">
+                        <div class="form-grid">
+                            <input type="text" id="prod-name" placeholder="Product Name" required>
+                            <input type="number" id="prod-buy" placeholder="Default Buy Price" required>
+                            <input type="number" id="prod-sell" placeholder="Default Sell Price" required>
+                            <input type="number" id="prod-stock" placeholder="Stock Quantity" required>
+                        </div>
+                        <button type="submit" class="submit-btn" style="margin-top: 10px;">Add Product</button>
+                    </form>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Buy Price</th>
+                                <th>Sell Price</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Customers Section -->
+            <section id="customers-section" class="content-section">
+                <div class="table-section">
+                    <h3>Customer List</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Total Orders</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script src="script.js"></script>
