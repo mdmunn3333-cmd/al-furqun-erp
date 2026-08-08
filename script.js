@@ -28,6 +28,16 @@ const settingsForm = document.getElementById('settings-form');
 const settingsNewEmail = document.getElementById('settings-new-email');
 const settingsNewPassword = document.getElementById('settings-new-password');
 
+// --- Mobile Sidebar Toggle ---
+const menuToggleBtn = document.getElementById('menu-toggle-btn');
+const sidebar = document.getElementById('sidebar');
+
+if (menuToggleBtn && sidebar) {
+    menuToggleBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+    });
+}
+
 if (sessionStorage.getItem('isLoggedIn') === 'true') {
     loginContainer.style.display = 'none';
     erpContainer.style.display = 'flex';
@@ -143,7 +153,6 @@ function updateERP() {
     let totalNetProfit = 0;
 
     orders.forEach((ord, index) => {
-        // Profit calculation: (Sell Price * Qty) - Buy Price - Delivery Charge - Courier Cost - Packaging Cost - Return Cost
         let revenue = Number(ord.sellPrice) * Number(ord.qty);
         let bPrice = Number(ord.buyPrice);
         let dCharge = Number(ord.deliveryCharge);
@@ -155,7 +164,6 @@ function updateERP() {
         totalSales += revenue;
         totalNetProfit += finalProfit;
 
-        // Recent Orders Row
         let rowHTML1 = `
             <td><b>${ord.date}</b><br><span style="color:#64748b; font-size:11px;">#${ord.orderId}</span></td>
             <td><b>${ord.customerName}</b><br><span style="color:#0284c7; font-size:11px;">${ord.source}</span></td>
@@ -169,7 +177,6 @@ function updateERP() {
         tr1.innerHTML = rowHTML1;
         orderTableBody.appendChild(tr1);
 
-        // All Orders Database Row
         let rowHTML2 = `
             <td>${ord.date}</td>
             <td>#${ord.orderId}</td>
@@ -195,7 +202,6 @@ function updateERP() {
     totalProfitElem.innerText = `৳ ${totalNetProfit}`;
     localStorage.setItem('al_furqun_orders', JSON.stringify(orders));
 
-    // Products Table
     productTableBody.innerHTML = '';
     products.forEach((prod) => {
         let pRow = document.createElement('tr');
@@ -204,7 +210,6 @@ function updateERP() {
     });
     localStorage.setItem('al_furqun_products', JSON.stringify(products));
 
-    // Customers Table
     customerTableBody.innerHTML = '';
     let uniqueCustomers = {};
     orders.forEach(ord => {
@@ -222,7 +227,6 @@ function updateERP() {
     }
 }
 
-// Add Order Submit
 orderForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const newOrder = {
@@ -249,14 +253,13 @@ orderForm.addEventListener('submit', function(e) {
         status: document.getElementById('customer-status').value
     };
 
-    orders.unshift(newOrder); // New order on top
+    orders.unshift(newOrder);
     updateERP();
     orderForm.reset();
     document.getElementById('order-date').valueAsDate = new Date();
     toggleReturnFields();
 });
 
-// Delete Order Function
 function deleteOrder(index) {
     if(confirm("Are you sure you want to delete this order?")) {
         orders.splice(index, 1);
@@ -276,7 +279,6 @@ productForm.addEventListener('submit', function(e) {
     productForm.reset();
 });
 
-// Navigation Switcher
 const navLinks = document.querySelectorAll('.nav-link');
 const contentSections = document.querySelectorAll('.content-section');
 const pageTitle = document.getElementById('page-title');
@@ -292,10 +294,14 @@ navLinks.forEach(link => {
         document.getElementById(targetId).style.display = 'block';
 
         pageTitle.innerText = this.innerText + ' Overview';
+
+        // মোবাইলে কোনো অপশনে ক্লিক করলে অটো সাইডবার বন্ধ হয়ে যাবে
+        if(window.innerWidth <= 768) {
+            sidebar.classList.remove('active');
+        }
     });
 });
 
-// Default today's date on load
 document.getElementById('order-date').valueAsDate = new Date();
 
 if (sessionStorage.getItem('isLoggedIn') === 'true') {
