@@ -52,19 +52,351 @@
         }
 
         .auth-card {
-            background: var(--bg-card);
-            padding: 40px;
-            border-radius: 12px;
+        /* =========================================
+   AL FURQUN ERP - MODERN ANIMATIONS
+   ========================================= */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+/* Login Button Animation */
+
+.auth-card .btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card .btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.18),
+        transparent
+    );
+    transform: skewX(-20deg);
+    transition: left 0.5s ease;
+}
+
+.auth-card .btn:hover::after {
+    left: 130%;
+}
+/* ---------- PAGE LOAD ---------- */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideRight {
+    from {
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ---------- LOGIN SCREEN ---------- */
+
+#authScreen {
+    animation: fadeIn 0.45s ease;
+}
+
+.auth-card {
+    animation: scaleIn 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Login heading */
+.auth-card h2 {
+    animation: slideUp 0.6s ease 0.1s both;
+}
+
+/* Login fields */
+.auth-card .input-group {
+    animation: slideUp 0.6s ease 0.18s both;
+}
+
+.auth-card .input-group:nth-of-type(2) {
+    animation-delay: 0.26s;
+}
+
+/* ---------- SIDEBAR ---------- */
+
+.sidebar {
+    animation: slideRight 0.5s ease;
+}
+
+.sidebar-brand {
+    animation: fadeIn 0.6s ease 0.15s both;
+}
+
+.sidebar-menu li {
+    opacity: 0;
+    animation: slideRight 0.45s ease forwards;
+}
+
+.sidebar-menu li:nth-child(1) {
+    animation-delay: 0.10s;
+}
+
+.sidebar-menu li:nth-child(2) {
+    animation-delay: 0.16s;
+}
+
+.sidebar-menu li:nth-child(3) {
+    animation-delay: 0.22s;
+}
+
+.sidebar-menu li:nth-child(4) {
+    animation-delay: 0.28s;
+}
+
+.sidebar-menu li:nth-child(5) {
+    animation-delay: 0.34s;
+}
+
+.sidebar-menu li:nth-child(6) {
+    animation-delay: 0.40s;
+}
+
+/* Sidebar menu hover */
+.sidebar-menu li a {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        padding-left 0.25s ease;
+}
+
+.sidebar-menu li a:hover {
+    padding-left: 29px;
+}
+
+/* ---------- MAIN CONTENT ---------- */
+
+.main-content {
+    animation: fadeIn 0.5s ease;
+}
+
+header {
+    animation: slideUp 0.45s ease;
+}
+
+/* ---------- PAGE / TAB TRANSITION ---------- */
+
+.tab-content.active {
+    animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- DASHBOARD CARDS ---------- */
+
+.stat-card {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    border-color: var(--accent);
+}
+
+/* ---------- NORMAL CARDS ---------- */
+
+.card {
+    animation: slideUp 0.45s ease both;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+}
+
+/* ---------- BUTTONS ---------- */
+
+.btn,
+.logout-btn {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.btn:hover,
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.22);
+}
+
+.btn:active,
+.logout-btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+/* ---------- INPUTS ---------- */
+
+input,
+select,
+textarea {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+/* ---------- TABLE ROWS ---------- */
+
+table tbody tr {
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: rgba(56, 189, 248, 0.045);
+}
+
+/* ---------- BADGES ---------- */
+
+.badge {
+    transition: transform 0.2s ease;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* ---------- LOGOUT ---------- */
+
+.logout-btn:hover {
+    opacity: 0.92;
+}
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+            background: linear-gradient(145deg, #1e293b, #172033);
+            padding: 34px;
+            border-radius: 18px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
+            max-width: 410px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+            border: 1px solid rgba(148,163,184,0.18);
+        }
+
+        .auth-logo {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(56,189,248,0.12);
+            color: var(--accent);
+            font-size: 1.55rem;
         }
 
         .auth-card h2 {
-            margin-bottom: 24px;
-            color: var(--accent);
+            margin-bottom: 8px;
+            color: var(--text-main);
             text-align: center;
+            font-size: 1.45rem;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-bottom: 26px;
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 44px;
+            width: 100%;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .login-btn {
+            width: 100%;
+            margin-top: 6px;
+            padding: 12px;
+            font-size: 0.95rem;
         }
 
         /* --- LAYOUT --- */
@@ -113,11 +445,6 @@
             padding: 20px;
             border-top: 1px solid var(--border);
         }
-
-        .action-btn { border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; color: white; margin-right: 6px; font-weight: 600; }
-        .edit-btn { background: #0284c7; }
-        .delete-btn { background: #dc2626; }
-        .action-btn:hover { opacity: 0.85; }
 
         .logout-btn {
             background: var(--danger);
@@ -171,7 +498,21 @@
             gap: 20px;
             margin-bottom: 30px;
         }
+.stats-grid .stat-card:nth-child(1) {
+    animation: slideUp 0.45s ease 0.05s both;
+}
 
+.stats-grid .stat-card:nth-child(2) {
+    animation: slideUp 0.45s ease 0.12s both;
+}
+
+.stats-grid .stat-card:nth-child(3) {
+    animation: slideUp 0.45s ease 0.19s both;
+}
+
+.stats-grid .stat-card:nth-child(4) {
+    animation: slideUp 0.45s ease 0.26s both;
+}
         .stat-card {
             background: var(--bg-card);
             padding: 20px;
@@ -308,6 +649,28 @@
             align-items: center;
             gap: 5px;
         }
+        .product-edit-btn, .product-delete-btn {
+            border: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .product-edit-btn {
+            background: rgba(56,189,248,0.15);
+            color: var(--accent);
+        }
+
+        .product-delete-btn {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+        }
+
+        .product-edit-btn:hover { background: rgba(56,189,248,0.25); }
+        .product-delete-btn:hover { background: rgba(239,68,68,0.25); }
     </style>
 </head>
 <body>
@@ -315,20 +678,22 @@
     <!-- LOGIN SCREEN -->
     <div id="authScreen">
         <div class="auth-card">
-            <h2>Al Furqun ERP Login</h2>
+            <div class="auth-logo"><i class="fa-solid fa-shield-halved"></i></div>
+            <h2>Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to your Al Furqun ERP account</p>
             <form id="loginForm">
                 <div class="input-group" style="margin-bottom: 16px;">
                     <label>Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="username" required>
                 </div>
                 <div class="input-group" style="margin-bottom: 20px;">
                     <label>Password</label>
-                    <div style="position:relative;">
-                        <input type="password" id="loginPass" placeholder="Enter your password" required style="padding-right:45px;">
-                        <button type="button" id="toggleLoginPass" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:#94a3b8;cursor:pointer;font-size:16px;"><i class="fa-solid fa-eye"></i></button>
+                    <div class="password-wrap">
+                        <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
                     </div>
                 </div>
-                <button type="submit" class="btn" style="width: 100%;">Login to System</button>
+                <button type="submit" class="btn login-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
             </form>
         </div>
     </div>
@@ -421,23 +786,17 @@
                             <div class="input-group"><label>4. Customer Name</label><input type="text" id="oCustName" required></div>
                             <div class="input-group"><label>5. Phone</label><input type="text" id="oPhone" required></div>
                             <div class="input-group"><label>6. Address</label><input type="text" id="oAddress" required></div>
-                            <div class="input-group"><label>7. Product</label>
-                                <select id="oProduct" required>
-                                    <option value="">Select Product</option>
-                                </select>
-                            </div>
-                            <div class="input-group"><label>8. Quantity</label><input type="number" id="oQty" value="1" required></div>
-                            <div class="input-group"><label>9. Supplier</label>
-                                <select id="oSupplier" required>
-                                    <option value="">Select Supplier</option>
-                                    <option value="AmarSell">AmarSell</option>
-                                    <option value="Greenish">Greenish</option>
-                                    <option value="iUddokta">iUddokta</option>
-                                    <option value="Dropshipper">Dropshipper</option>
-                                    <option value="Shopbase">Shopbase</option>
-                                    <option value="Asia Express">Asia Express</option>
-                                </select>
-                            </div>
+                            <div class="input-group"><label>7. Product</label><select id="oProduct" required><option value="">Select Product</option></select></div>
+                            <div class="input-group"><label>8. Quantity</label><input type="number" id="oQty" value="1" min="1" required></div>
+                            <div class="input-group"><label>9. Supplier</label><select id="oSupplier" required>
+                                <option value="">Select Supplier</option>
+                                <option value="AmarSell">AmarSell</option>
+                                <option value="Greenish">Greenish</option>
+                                <option value="iUddokta">iUddokta</option>
+                                <option value="Dropshipper">Dropshipper</option>
+                                <option value="Shopbase">Shopbase</option>
+                                <option value="Asia Express">Asia Express</option>
+                            </select></div>
                             <div class="input-group"><label>10. Buy Price</label><input type="number" id="oBuyPrice" value="0" required></div>
                             <div class="input-group"><label>11. Sell Price</label><input type="number" id="oSellPrice" value="0" required></div>
                             <div class="input-group"><label>12. Delivery Charge</label><input type="number" id="oDelCharge" value="0"></div>
@@ -452,13 +811,11 @@
                             <div class="input-group"><label>16. Return Reason</label><input type="text" id="oRetReason" value="N/A"></div>
                             <div class="input-group"><label>17. Return Cost</label><input type="number" id="oRetCost" value="0"></div>
                             <div class="input-group"><label>18. Tracking ID</label><input type="text" id="oTrackId" placeholder="TRK-..."></div>
-                            <div class="input-group"><label>19. Courier Company</label>
-                                <select id="oCourierComp" required>
-                                    <option value="">Select Courier</option>
-                                    <option value="Pathao">Pathao</option>
-                                    <option value="Steadfast">Steadfast</option>
-                                </select>
-                            </div>
+                            <div class="input-group"><label>19. Courier Company</label><select id="oCourierComp">
+                                <option value="">Select Courier</option>
+                                <option value="Pathao">Pathao</option>
+                                <option value="Steadfast">Steadfast</option>
+                            </select></div>
                             <div class="input-group"><label>20. Status</label>
                                 <select id="oStatus">
                                     <option value="Delivered">Delivered</option>
@@ -676,14 +1033,6 @@
             }
         });
 
-        const toggleLoginPass = document.getElementById('toggleLoginPass');
-        toggleLoginPass.addEventListener('click', () => {
-            const input = document.getElementById('loginPass');
-            const icon = toggleLoginPass.querySelector('i');
-            if(input.type === 'password') { input.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
-            else { input.type = 'password'; icon.className = 'fa-solid fa-eye'; }
-        });
-
         // --- NAVIGATION ---
         const menuItems = document.querySelectorAll('.sidebar-menu li');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -702,6 +1051,15 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
             authScreen.style.display = 'flex';
+        });
+
+        // Password show/hide button
+        document.getElementById('togglePassword').addEventListener('click', () => {
+            const passInput = document.getElementById('loginPass');
+            const icon = document.querySelector('#togglePassword i');
+            const isPassword = passInput.type === 'password';
+            passInput.type = isPassword ? 'text' : 'password';
+            icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
         });
 
         // --- ORDER SUBMISSION ---
@@ -780,116 +1138,66 @@
             alert('Credentials updated successfully!');
         });
 
-        function deleteProductFromCatalog(productName) {
-            if(!confirm(`Are you sure you want to delete "${productName}"?`)) return;
-            const index = db.products.findIndex(p => p.name === productName);
-            if(index > -1) {
-                db.products.splice(index, 1);
-                saveDB();
-                alert('Product deleted successfully!');
+        // --- PRODUCT EDIT / DELETE ---
+        function editProduct(index) {
+            const product = db.products[index];
+            if (!product) return;
+
+            const newName = prompt('Product Name:', product.name);
+            if (newName === null) return;
+            const cleanName = newName.trim();
+            if (!cleanName) {
+                alert('Product name cannot be empty.');
+                return;
             }
+
+            const newCategory = prompt('Category:', product.category || '');
+            if (newCategory === null) return;
+
+            const newBuyPrice = prompt('Buy Price:', product.buyPrice);
+            if (newBuyPrice === null) return;
+
+            const newSellPrice = prompt('Sell Price:', product.sellPrice);
+            if (newSellPrice === null) return;
+
+            const buyPrice = Number(newBuyPrice);
+            const sellPrice = Number(newSellPrice);
+            if (Number.isNaN(buyPrice) || Number.isNaN(sellPrice)) {
+                alert('Buy Price and Sell Price must be valid numbers.');
+                return;
+            }
+
+            const oldName = product.name;
+            product.name = cleanName;
+            product.category = newCategory.trim();
+            product.buyPrice = buyPrice;
+            product.sellPrice = sellPrice;
+
+            // If the product name changed, update old orders too.
+            db.orders.forEach(ord => {
+                if (ord.product === oldName) {
+                    ord.product = cleanName;
+                }
+            });
+
+            saveDB();
+            alert('Product updated successfully!');
         }
 
-        // --- PRODUCT DETAILS / EDIT / DELETE IN NEW CHROME TAB ---
-        function openProductDetails(productName) {
-            const win = window.open('', '_blank');
-            if (!win) {
-                alert('Please allow pop-ups for this ERP so Product Details can open in a new tab.');
-                return;
-            }
+        function deleteProduct(index) {
+            const product = db.products[index];
+            if (!product) return;
 
-            const safeName = String(productName).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
-            const product = db.products.find(p => p.name === productName);
-            if (!product) {
-                win.document.write('<h2>Product not found</h2>');
-                win.document.close();
-                return;
-            }
+            const usedInOrders = db.orders.some(ord => ord.product === product.name);
+            const message = usedInOrders
+                ? `"${product.name}" has existing orders. Delete it from the product catalog anyway? Existing orders will stay saved.`
+                : `Delete "${product.name}" from the product catalog?`;
 
-            const orderedCount = db.orders.filter(o => o.product === productName).length;
-            const detailsHTML = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Product Details - ${productName}</title>
-<style>
-body{margin:0;background:#0f172a;color:#f8fafc;font-family:Arial,sans-serif;padding:28px}
-.wrap{max-width:1000px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
-h1{margin:0;color:#38bdf8}.back{background:#1e293b;color:#fff;border:1px solid #334155;padding:11px 18px;border-radius:8px;cursor:pointer}
-.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:28px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.item{background:#172235;border:1px solid #334155;border-radius:9px;padding:18px}.label{color:#94a3b8;font-size:14px;margin-bottom:7px}.value{font-size:20px;font-weight:bold}
-hr{border:0;border-top:1px solid #334155;margin:28px 0}.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}label{display:block;color:#94a3b8;margin-bottom:7px}input{width:100%;box-sizing:border-box;background:#0f172a;color:white;border:1px solid #334155;border-radius:7px;padding:12px;font-size:16px}
-.actions{display:flex;gap:12px;margin-top:20px}.save{background:#38bdf8;color:#07111f;border:0;padding:12px 20px;border-radius:7px;font-weight:bold;cursor:pointer}.delete{background:#ef4444;color:white;border:0;padding:12px 20px;border-radius:7px;font-weight:bold;cursor:pointer}
-@media(max-width:700px){.grid,.edit-grid{grid-template-columns:1fr}.top{gap:15px;align-items:flex-start;flex-direction:column}}
-</style>
-</head>
-<body>
-<div class="wrap">
-<div class="top"><div><div style="color:#94a3b8;margin-bottom:5px">Al Furqun ERP</div><h1>Product Details</h1></div><button class="back" onclick="window.close()">← Close Tab</button></div>
-<div class="card">
-<div class="grid">
-<div class="item"><div class="label">Product Name</div><div class="value" id="viewName"></div></div>
-<div class="item"><div class="label">Category</div><div class="value" id="viewCategory"></div></div>
-<div class="item"><div class="label">Buy Price</div><div class="value" id="viewBuy"></div></div>
-<div class="item"><div class="label">Sell Price</div><div class="value" id="viewSell"></div></div>
-<div class="item"><div class="label">Times Ordered</div><div class="value" id="viewCount"></div></div>
-</div>
-<hr>
-<h2>Edit Product</h2>
-<div class="edit-grid">
-<div><label>Product Name</label><input id="editName"></div>
-<div><label>Category</label><input id="editCategory"></div>
-<div><label>Buy Price (৳)</label><input id="editBuy" type="number"></div>
-<div><label>Sell Price (৳)</label><input id="editSell" type="number"></div>
-</div>
-<div class="actions"><button class="save" onclick="saveProduct()">Save Changes</button><button class="delete" onclick="deleteProduct()">Delete Product</button></div>
-</div></div>
-<script>
-const productKey = ${JSON.stringify(safeName)};
-let db = JSON.parse(localStorage.getItem('alfurqun_erp_db')) || {user:{email:'admin@alfurqun.com',pass:'123456'},orders:[],products:[],suppliers:[]};
-let product = db.products.find(p => p.name === productKey);
-if(!product){ document.body.innerHTML='<h2>Product not found.</h2>'; }
-else {
- document.getElementById('viewName').textContent=product.name;
- document.getElementById('viewCategory').textContent=product.category || 'General';
- document.getElementById('viewBuy').textContent='৳'+product.buyPrice;
- document.getElementById('viewSell').textContent='৳'+product.sellPrice;
- document.getElementById('viewCount').textContent=db.orders.filter(o=>o.product===product.name).length+' times';
- document.getElementById('editName').value=product.name;
- document.getElementById('editCategory').value=product.category || '';
- document.getElementById('editBuy').value=product.buyPrice;
- document.getElementById('editSell').value=product.sellPrice;
-}
-function saveProduct(){
- const oldName=product.name;
- const newName=document.getElementById('editName').value.trim();
- const newCategory=document.getElementById('editCategory').value.trim();
- const newBuy=Number(document.getElementById('editBuy').value)||0;
- const newSell=Number(document.getElementById('editSell').value)||0;
- if(!newName){alert('Product Name cannot be empty!');return;}
- if(newName!==oldName && db.products.some(p=>p.name===newName)){alert('A product with this name already exists!');return;}
- product.name=newName; product.category=newCategory; product.buyPrice=newBuy; product.sellPrice=newSell;
- db.orders.forEach(o=>{if(o.product===oldName){o.product=newName;o.buyPrice=newBuy;o.sellPrice=newSell;}});
- localStorage.setItem('alfurqun_erp_db',JSON.stringify(db));
- if(window.opener && !window.opener.closed){window.opener.postMessage({type:'ERP_DATA_UPDATED'},'*');}
- alert('Product updated successfully!'); location.reload();
-}
-function deleteProduct(){
- if(!confirm('Are you sure you want to delete this product?')) return;
- const idx=db.products.findIndex(p=>p.name===product.name);
- if(idx>-1) db.products.splice(idx,1);
- localStorage.setItem('alfurqun_erp_db',JSON.stringify(db));
- if(window.opener && !window.opener.closed){window.opener.postMessage({type:'ERP_DATA_UPDATED'},'*');}
- alert('Product deleted successfully!');
- window.close();
-}
-<\/script>
-</body></html>`;
-            win.document.open();
-            win.document.write(detailsHTML);
-            win.document.close();
+            if (confirm(message)) {
+                db.products.splice(index, 1);
+                saveDB();
+                alert('Product deleted from catalog.');
+            }
         }
 
         // --- RENDER & CALCULATIONS ---
@@ -975,47 +1283,35 @@ function deleteProduct(){
             document.getElementById('statCustomers').innerText = custCount;
             document.getElementById('customersTableBody').innerHTML = custHTML || `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No customers found</td></tr>`;
 
-            // 3. Products Catalog Table (Combining manually added + order tracked products)
-            let productMap = {};
-            
-            // First load pre-added products
-            db.products.forEach(p => {
-                productMap[p.name] = { name: p.name, category: p.category, buyPrice: p.buyPrice, sellPrice: p.sellPrice, count: 0 };
-            });
-
-            // Then track or count from orders
-            db.orders.forEach(ord => {
-                if(!productMap[ord.product]) {
-                    productMap[ord.product] = { name: ord.product, category: 'General', buyPrice: ord.buyPrice, sellPrice: ord.sellPrice, count: 0 };
-                }
-                productMap[ord.product].count++;
-                productMap[ord.product].sellPrice = ord.sellPrice; // update with latest sell price
-            });
-
-            // Product dropdown in Order form
-            const productSelect = document.getElementById('oProduct');
-            productSelect.innerHTML = '<option value="">Select Product</option>';
-            db.products.forEach(p => {
-                productSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-            });
-
+            // 3. Products Catalog Table
+            // Only catalog products are shown here, so Delete really removes the product from the catalog.
             let prodHTML = '';
-            for(let pName in productMap) {
-                let p = productMap[pName];
-                const encodedName = encodeURIComponent(p.name);
-                const isSavedProduct = db.products.some(x => x.name === p.name);
+            db.products.forEach((p, index) => {
+                let count = db.orders.filter(ord => ord.product === p.name).length;
                 prodHTML += `
                     <tr>
                         <td><strong>${p.name}</strong></td>
                         <td>${p.category || 'General'}</td>
                         <td>৳${p.buyPrice}</td>
                         <td>৳${p.sellPrice}</td>
-                        <td>${p.count} times</td>
-                        <td>${isSavedProduct ? `<button class="action-btn edit-btn" onclick="openProductDetails(decodeURIComponent('${encodedName}'))"><i class="fa-solid fa-pen"></i> Edit</button><button class="action-btn delete-btn" onclick="deleteProductFromCatalog(decodeURIComponent('${encodedName}'))"><i class="fa-solid fa-trash"></i> Delete</button>` : '<span style="color:var(--text-muted);">Order Product</span>'}</td>
+                        <td>${count} times</td>
+                        <td>
+                            <button type="button" class="product-edit-btn" onclick="editProduct(${index})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button type="button" class="product-delete-btn" onclick="deleteProduct(${index})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </td>
                     </tr>
                 `;
-            }
+            });
             document.getElementById('productsTableBody').innerHTML = prodHTML || `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No products found</td></tr>`;
+
+            // Product dropdown in Order Form
+            const productSelect = document.getElementById('oProduct');
+            const currentProduct = productSelect.value;
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            db.products.forEach(p => {
+                productSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            });
+            if([...productSelect.options].some(o => o.value === currentProduct)) productSelect.value = currentProduct;
 
             // 4. Suppliers Table
             let supHTML = '';
@@ -1031,15 +1327,8 @@ function deleteProduct(){
             document.getElementById('suppliersTableBody').innerHTML = supHTML || `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No suppliers found</td></tr>`;
         }
 
-        // Refresh main ERP when a Product Details tab changes data
-        window.addEventListener('message', (event) => {
-            if(event.data && event.data.type === 'ERP_DATA_UPDATED') {
-                db = JSON.parse(localStorage.getItem('alfurqun_erp_db')) || db;
-                renderAll();
-            }
-        });
-
         // Initial Load
+        document.getElementById('oDate').valueAsDate = new Date();
         renderAll();
     </script>
 </body>
