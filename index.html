@@ -345,6 +345,15 @@ table tbody tr{transition:background-color .2s ease,transform .2s ease}table tbo
 @media(max-width:768px){.auth-card{animation-duration:.45s}.stat-card:hover{transform:translateY(-3px)}.card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* ===== END ANIMATION LAYER ===== */
+
+/* Product action buttons */
+.product-actions{white-space:nowrap;display:flex;gap:8px;align-items:center}
+.product-actions .btn-edit,.product-actions .btn-delete{border:none;border-radius:7px;padding:7px 11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+.product-actions .btn-edit{background:#0ea5e9;color:#fff}
+.product-actions .btn-delete{background:#ef4444;color:#fff}
+.product-actions .btn-edit:hover,.product-actions .btn-delete:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.22);filter:brightness(1.05)}
+@media(max-width:768px){.product-actions{flex-wrap:wrap}.product-actions .btn-edit,.product-actions .btn-delete{padding:6px 9px;font-size:12px}}
+
 </style>
 </head>
 <body>
@@ -786,6 +795,81 @@ table tbody tr{transition:background-color .2s ease,transform .2s ease}table tbo
             alert('Credentials updated successfully!');
         });
 
+        // --- PRODUCT EDIT / DELETE (opens in a new Chrome tab) ---
+        function openProductEditor(productName) {
+            const product = db.products.find(p => p.name === productName);
+            let source = product || { name: productName, category: 'General', buyPrice: 0, sellPrice: 0 };
+            const count = db.orders.filter(o => o.product === productName).length;
+            const child = window.open('', '_blank');
+            if (!child) {
+                alert('Please allow pop-ups for this ERP so Product Edit can open in a new tab.');
+                return;
+            }
+            const safe = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+            child.document.open();
+            child.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Details - ${safe(source.name)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07111f;--card:#0f1b2d;--border:#22334d;--text:#e5eefb;--muted:#94a3b8;--accent:#38bdf8;--danger:#ef4444;--success:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07111f,#0b1627);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh;padding:35px 18px}
+.wrap{max-width:760px;margin:auto}.back{color:var(--accent);cursor:pointer;margin-bottom:20px;font-weight:600}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:0 18px 45px rgba(0,0,0,.28);animation:up .45s ease}.title{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:25px}.title h1{margin:0;font-size:26px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:7px}.field input{width:100%;padding:12px 13px;border-radius:9px;border:1px solid var(--border);background:#091426;color:var(--text);outline:none}.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.12)}.full{grid-column:1/-1}.info{margin-top:20px;padding:15px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.025);color:var(--muted)}.actions{display:flex;gap:10px;margin-top:25px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:11px 17px;font-weight:700;cursor:pointer;color:#fff}.save{background:var(--success)}.del{background:var(--danger)}.cancel{background:#334155}@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.title{display:block}}
+</style></head><body>
+<div class="wrap">
+<div class="back" onclick="window.close()">← Back to Products</div>
+<div class="card">
+<div class="title"><div><div style="color:var(--accent);font-size:13px;font-weight:700;margin-bottom:7px">PRODUCT DETAILS</div><h1>${safe(source.name)}</h1></div></div>
+<div class="grid">
+<div class="field full"><label>Product Name</label><input id="pName" value="${safe(source.name)}"></div>
+<div class="field"><label>Category</label><input id="pCategory" value="${safe(source.category || 'General')}"></div>
+<div class="field"><label>Times Ordered</label><input value="${count}" disabled></div>
+<div class="field"><label>Buy Price</label><input id="pBuy" type="number" value="${Number(source.buyPrice)||0}"></div>
+<div class="field"><label>Sell Price</label><input id="pSell" type="number" value="${Number(source.sellPrice)||0}"></div>
+</div>
+<div class="actions"><button class="btn save" onclick="saveProduct()">Save Changes</button><button class="btn del" onclick="removeProduct()">Delete Product</button><button class="btn cancel" onclick="window.close()">Cancel</button></div>
+<div class="info">Changes are saved to the same ERP database used by the main tab.</div>
+</div></div>
+<script>
+const originalName=${JSON.stringify(productName)};
+function getDB(){return JSON.parse(localStorage.getItem('alfurqun_erp_db')) || {user:{email:'admin@alfurqun.com',pass:'123456'},orders:[],products:[],suppliers:[]};}
+function saveDB(db){localStorage.setItem('alfurqun_erp_db',JSON.stringify(db));}
+function saveProduct(){
+ const db=getDB(); const name=document.getElementById('pName').value.trim(); const category=document.getElementById('pCategory').value.trim()||'General'; const buy=Number(document.getElementById('pBuy').value)||0; const sell=Number(document.getElementById('pSell').value)||0;
+ if(!name){alert('Product name cannot be empty.');return;}
+ let p=db.products.find(x=>x.name===originalName);
+ if(!p){p={name:originalName,category:'General',buyPrice:0,sellPrice:0};db.products.push(p);}
+ db.orders.forEach(o=>{if(o.product===originalName){o.product=name;o.buyPrice=buy;o.sellPrice=sell;}});
+ p.name=name;p.category=category;p.buyPrice=buy;p.sellPrice=sell;saveDB(db);alert('Product updated successfully!');if(window.opener&&!window.opener.closed){window.opener.postMessage({type:'erp-product-updated'},'*');}window.close();
+}
+function removeProduct(){
+ if(!confirm('Are you sure you want to delete this product?'))return; const db=getDB(); const before=db.products.length; db.products=db.products.filter(p=>p.name!==originalName); if(db.products.length===before){alert('This product is only present in order history, so it cannot be removed from the catalog.');return;} saveDB(db); if(window.opener&&!window.opener.closed){window.opener.postMessage({type:'erp-product-updated'},'*');}window.close();
+}
+<\/script></body></html>`);
+            child.document.close();
+        }
+
+        function deleteProduct(productName) {
+            if(!confirm(`Are you sure you want to delete "${productName}"?`)) return;
+            const before = db.products.length;
+            db.products = db.products.filter(p => p.name !== productName);
+            if(db.products.length === before){
+                alert('This product is only present in order history and is not in the product catalog.');
+                return;
+            }
+            saveDB();
+            alert('Product deleted successfully!');
+        }
+
+        window.addEventListener('message', (event) => {
+            if(event.data && event.data.type === 'erp-product-updated') renderAll();
+        });
+
         // --- RENDER & CALCULATIONS ---
         function renderAll() {
             // Fill Settings input fields
@@ -893,13 +977,21 @@ table tbody tr{transition:background-color .2s ease,transform .2s ease}table tbo
                     <tr>
                         <td><strong>${p.name}</strong></td>
                         <td>${p.category || 'General'}</td>
-                        <td>৳${p.buyPrice}</td>
-                        <td>৳${p.sellPrice}</td>
+                        <td>৳${p.buyPrice ?? 0}</td>
+                        <td>৳${p.sellPrice ?? 0}</td>
                         <td>${p.count} times</td>
+                        <td class="product-actions">
+                            <button type="button" class="btn btn-edit" onclick="openProductEditor(${JSON.stringify(p.name)})">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-delete" onclick="deleteProduct(${JSON.stringify(p.name)})">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </td>
                     </tr>
                 `;
             }
-            document.getElementById('productsTableBody').innerHTML = prodHTML || `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No products found</td></tr>`;
+            document.getElementById('productsTableBody').innerHTML = prodHTML || `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No products found</td></tr>`;
 
             // 4. Suppliers Table
             let supHTML = '';
