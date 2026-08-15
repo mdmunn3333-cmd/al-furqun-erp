@@ -458,6 +458,26 @@ table tbody tr{transition:background-color .2s ease,transform .2s ease}table tbo
 .product-actions .btn-edit:hover,.product-actions .btn-delete:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.22);filter:brightness(1.05)}
 @media(max-width:768px){.product-actions{flex-wrap:wrap}.product-actions .btn-edit,.product-actions .btn-delete{padding:6px 9px;font-size:12px}}
 
+
+/* Order Calculator */
+.calc-card{margin-top:22px;overflow:hidden}
+.calc-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+.calc-head h2{margin:0}
+.calc-invoice-btn{border:1px solid var(--accent);background:transparent;color:var(--accent);padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer}
+.calc-section-title{font-size:1.05rem;font-weight:700;margin:18px 0 12px;color:var(--text-main)}
+.calc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.calc-field label{display:block;margin-bottom:7px;color:var(--text-muted);font-weight:600}
+.calc-field input,.calc-field select{width:100%;padding:12px 13px;border:1px solid var(--border);border-radius:8px;background:var(--bg-main);color:var(--text-main);font-size:1rem;outline:none}
+.calc-field input:focus,.calc-field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.calc-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px}
+.calc-result{padding:18px;border:1px solid var(--border);border-radius:10px;background:var(--bg-main)}
+.calc-result span{display:block;color:var(--text-muted);margin-bottom:7px;font-weight:600}
+.calc-result strong{font-size:1.5rem;color:var(--accent)}
+.calc-result.profit strong{color:#22c55e}
+.calc-result.loss strong{color:#ef4444}
+.calc-note{margin-top:16px;color:var(--text-muted);font-size:.9rem}
+@media(max-width:800px){.calc-grid,.calc-results{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.calc-grid,.calc-results{grid-template-columns:1fr}.calc-head{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -619,6 +639,43 @@ table tbody tr{transition:background-color .2s ease,transform .2s ease}table tbo
                         </div>
                         <button type="submit" class="btn">Save Order</button>
                     </form>
+                </div>
+
+
+                <!-- ORDER CALCULATOR -->
+                <div class="card calc-card">
+                    <div class="calc-head">
+                        <h2>Calculators</h2>
+                        <button type="button" class="calc-invoice-btn" id="calcInvoiceBtn">Invoice</button>
+                    </div>
+
+                    <div class="calc-section-title">Shipping & Payment</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>Shipping*</label><input type="number" id="calcShipping" value="0" min="0"></div>
+                        <div class="calc-field"><label>Advanced*</label><input type="number" id="calcAdvanced" value="0" min="0"></div>
+                        <div class="calc-field"><label>Delivery Method</label><select id="calcDeliveryMethod"><option value="Pathao">Pathao</option><option value="Steadfast">Steadfast</option></select></div>
+                    </div>
+
+                    <div class="calc-section-title">Prices</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>Current</label><input type="number" id="calcCurrent" value="0" min="0"></div>
+                        <div class="calc-field"><label>Buy*</label><input type="number" id="calcBuy" value="0" min="0"></div>
+                        <div class="calc-field"><label>Sell*</label><input type="number" id="calcSell" value="0" min="0"></div>
+                    </div>
+
+                    <div class="calc-section-title">Charges</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>Packaging</label><input type="number" id="calcPackaging" value="0" min="0"></div>
+                        <div class="calc-field"><label>Delivery Charge</label><input type="number" id="calcDeliveryCharge" value="0" min="0"></div>
+                        <div class="calc-field"><label>COD / Return</label><input type="number" id="calcCodReturn" value="0" min="0"></div>
+                    </div>
+
+                    <div class="calc-results">
+                        <div class="calc-result"><span>Payable</span><strong id="calcPayable">৳0</strong></div>
+                        <div class="calc-result profit" id="calcProfitBox"><span>Profit</span><strong id="calcProfit">৳0</strong></div>
+                        <div class="calc-result profit" id="calcReceivableBox"><span>Receivable</span><strong id="calcReceivable">৳0</strong></div>
+                    </div>
+                    <div class="calc-note">Payable = Sell + Shipping + Delivery Charge + Packaging + COD / Return − Advanced. Profit is calculated from Sell − Buy − COD / Return. Receivable shows the amount left after Advanced, Shipping, Delivery Charge, Packaging, COD / Return and Buy.</div>
                 </div>
 
                 <div class="card">
@@ -1622,6 +1679,50 @@ ${cloned.outerHTML}
                 renderAll();
             }
         });
+
+
+        // --- ORDER CALCULATOR ---
+        (function initOrderCalculator(){
+            const ids=['calcShipping','calcAdvanced','calcCurrent','calcBuy','calcSell','calcPackaging','calcDeliveryCharge','calcCodReturn'];
+            const n=id=>Number(document.getElementById(id)?.value)||0;
+            const money=v=>`৳${Number(v||0).toLocaleString('en-BD')}`;
+            function calculateOrder(){
+                const shipping=n('calcShipping');
+                const advanced=n('calcAdvanced');
+                const buy=n('calcBuy');
+                const sell=n('calcSell');
+                const packaging=n('calcPackaging');
+                const delivery=n('calcDeliveryCharge');
+                const codReturn=n('calcCodReturn');
+                const payable=sell+shipping+delivery+packaging+codReturn-advanced;
+                const profit=sell-buy-codReturn;
+                const receivable=payable-advanced-shipping-delivery-packaging-codReturn-buy;
+                document.getElementById('calcPayable').textContent=money(payable);
+                document.getElementById('calcProfit').textContent=money(profit);
+                document.getElementById('calcReceivable').textContent=money(receivable);
+                document.getElementById('calcProfitBox').classList.toggle('profit',profit>=0);
+                document.getElementById('calcProfitBox').classList.toggle('loss',profit<0);
+                document.getElementById('calcReceivableBox').classList.toggle('profit',receivable>=0);
+                document.getElementById('calcReceivableBox').classList.toggle('loss',receivable<0);
+            }
+            ids.forEach(id=>document.getElementById(id)?.addEventListener('input',calculateOrder));
+            document.getElementById('calcDeliveryMethod')?.addEventListener('change',calculateOrder);
+
+            // If an order is being entered above, copy its values into the calculator with one click via the Invoice button.
+            document.getElementById('calcInvoiceBtn')?.addEventListener('click',()=>{
+                calculateOrder();
+                const method=document.getElementById('calcDeliveryMethod').value;
+                const shipping=n('calcShipping'),advanced=n('calcAdvanced'),current=n('calcCurrent'),buy=n('calcBuy'),sell=n('calcSell'),packaging=n('calcPackaging'),delivery=n('calcDeliveryCharge'),codReturn=n('calcCodReturn');
+                const payable=sell+shipping+delivery+packaging+codReturn-advanced;
+                const profit=sell-buy-codReturn;
+                const receivable=payable-advanced-shipping-delivery-packaging-codReturn-buy;
+                const w=window.open('','_blank');
+                if(!w){alert('Please allow pop-ups to print the invoice.');return;}
+                w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice - Al Furqun ERP</title><style>body{font-family:Arial,sans-serif;padding:35px;color:#111}h1{margin-bottom:4px}p{color:#555}.box{border:1px solid #ccc;border-radius:10px;padding:18px;max-width:650px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}.total{font-size:20px;font-weight:700}.profit{font-weight:700}@media print{button{display:none}}</style></head><body><h1>Al Furqun ERP</h1><p>Calculation / Invoice</p><div class="box"><div class="row"><span>Delivery Method</span><strong>${method}</strong></div><div class="row"><span>Shipping</span><strong>${money(shipping)}</strong></div><div class="row"><span>Advanced</span><strong>${money(advanced)}</strong></div><div class="row"><span>Current</span><strong>${money(current)}</strong></div><div class="row"><span>Buy</span><strong>${money(buy)}</strong></div><div class="row"><span>Sell</span><strong>${money(sell)}</strong></div><div class="row"><span>Packaging</span><strong>${money(packaging)}</strong></div><div class="row"><span>Delivery Charge</span><strong>${money(delivery)}</strong></div><div class="row"><span>COD / Return</span><strong>${money(codReturn)}</strong></div><div class="row total"><span>Payable</span><strong>${money(payable)}</strong></div><div class="row profit"><span>Profit</span><strong>${money(profit)}</strong></div><div class="row profit"><span>Receivable</span><strong>${money(receivable)}</strong></div></div><br><button onclick="window.print()">Print</button></body></html>`);
+                w.document.close();
+            });
+            calculateOrder();
+        })();
 
         // Initial Load
         renderAll();
