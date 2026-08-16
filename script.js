@@ -418,14 +418,7 @@ function replayMotion(){
       return;
     }
 
-    if(event === 'SIGNED_OUT'){
-      currentSession = null;
-      cloudReady=false;
-      // Ignore the initial SIGNED_OUT/anonymous event while the first
-      // getSession() check is still resolving.
-      if(authInitialized && !signingIn) showLogin('');
-      return;
-    }
+    
 
     if(session){
       currentSession=session;
