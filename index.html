@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AL FURQUN Business ERP</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <img src="logo.jpg" alt="Al Furqun" class="login-logo">
+    <div class="login-brand">AL FURQUN <span>BUSINESS ERP</span></div>
+    <h1>Welcome back</h1>
+    <p>Sign in to access your cloud-synced ERP.</p>
+    <form id="loginForm" autocomplete="on">
+      <label>Email</label>
+      <input id="loginEmail" type="email" autocomplete="username" placeholder="admin@example.com" required>
+      <label>Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      <button id="loginBtn" class="btn btn-primary login-btn" type="submit">Sign In</button>
+      <div id="loginError" class="login-error"></div>
+    </form>
+    <div class="login-note"><span>●</span> Cloud database connected</div>
+  </div>
+</div>
+
+
+<div id="appLoader" aria-label="Loading Al Furqun ERP">
+  <div class="loader-inner">
+    <img class="loader-logo" src="logo.jpg" alt="Al Furqun">
+    <div class="loader-ring"></div>
+    <div class="loader-text">AL FURQUN ERP</div>
+  </div>
+</div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="logo.jpg" alt="Al Furqun Logo">
+        <div><strong>AL FURQUN</strong><span>Business ERP</span></div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">MAIN</div>
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span> Dashboard</button>
+
+        <div class="nav-label">ORDER MANAGEMENT</div>
+        <button class="nav-item" data-page="orders"><span>▣</span> Orders <b id="pendingBadge">0</b></button>
+        <button class="nav-item" data-page="add-order"><span>＋</span> Add Order</button>
+        <button class="nav-item" data-page="returns"><span>↩</span> Returns</button>
+
+        <div class="nav-label">PRODUCT & INVENTORY</div>
+        <button class="nav-item" data-page="products"><span>◈</span> Products</button>
+        <button class="nav-item" data-page="stock"><span>▤</span> Stock / Inventory</button>
+
+        <div class="nav-label">SUPPLIER & PURCHASE</div>
+        <button class="nav-item" data-page="suppliers"><span>♙</span> Suppliers</button>
+        <button class="nav-item" data-page="purchases"><span>▰</span> Purchases</button>
+
+        <div class="nav-label">DELIVERY & COURIER</div>
+        <button class="nav-item" data-page="couriers"><span>▱</span> Couriers</button>
+        <button class="nav-item" data-page="tracking"><span>⌁</span> Tracking</button>
+
+        <div class="nav-label">ACCOUNTS & FINANCE</div>
+        <button class="nav-item" data-page="expenses"><span>৳</span> Expenses</button>
+        <button class="nav-item" data-page="payments"><span>◉</span> Payments</button>
+        <button class="nav-item" data-page="profit"><span>↗</span> Profit & Loss</button>
+
+        <div class="nav-label">REPORTS</div>
+        <button class="nav-item" data-page="reports"><span>▥</span> Reports</button>
+
+        <div class="nav-label">SETTINGS</div>
+        <button class="nav-item" data-page="settings"><span>⚙</span> Settings</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <strong>AL FURQUN ERP</strong>
+        <span>Version 1.0.0</span>
+        <small id="syncStatus">● Connecting to cloud...</small>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="welcome">
+          <span id="pageTitle">Dashboard</span>
+          <small>Al Furqun Business Management</small>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" title="Notifications">♧<i>0</i></button>
+          <div class="profile" id="profileBox">
+            <div class="avatar" id="profileAvatar">A</div>
+            <div><strong id="profileName">Admin</strong><small id="profileRole">Owner</small></div>
+            <button class="icon-btn logout-btn" id="logoutBtn" title="Logout">↪</button>
+          </div>
+        </div>
+      </header>
+
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+
+  <div id="modalRoot"></div>
+  <div id="toast"></div>
+  <script src="script.js"></script>
+
+<div id="afToast" class="af-toast">
+  <span class="toast-dot"></span>
+  <span class="toast-message">Done</span>
+</div>
+
+</body>
+</html>
