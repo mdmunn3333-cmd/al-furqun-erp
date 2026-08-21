@@ -2,11 +2,14 @@
    AL FURQUN ERP — SUPABASE VERSION
    ========================================================= */
 
-const sbClient = window.supabase.createClient(
-  "https://gzlytivdijfotclkicfe.supabase.co",
-  "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk"
-);
+const SUPABASE_URL =
+  "https://gzlytivdijfotclkicfe.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk";
+
 let sb = null;
+
 let db = {
   orders: [],
   customers: [],
@@ -31,23 +34,37 @@ let page = "dashboard";
 function loadSupabase() {
   return new Promise((resolve, reject) => {
     try {
-      if (window.supabase && window.supabase.createClient) {
-        sb = sbClient;
-        resolve();
-      } else {
-        reject(new Error("Supabase library failed to load."));
+      if (
+        !window.supabase ||
+        !window.supabase.createClient
+      ) {
+        reject(
+          new Error(
+            "Supabase library failed to load."
+          )
+        );
+        return;
       }
+
+      sb = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+      if (!sb) {
+        reject(
+          new Error(
+            "Supabase client could not be created."
+          )
+        );
+        return;
+      }
+
+      resolve();
+
     } catch (error) {
       reject(error);
     }
-  });
-}
-
-    script.onerror = () => {
-      reject(new Error("Could not load Supabase."));
-    };
-
-    document.head.appendChild(script);
   });
 }
 
