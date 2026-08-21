@@ -2,9 +2,10 @@
    AL FURQUN ERP — SUPABASE VERSION
    ========================================================= */
 
-const SUPABASE_URL = "https://gzlytivdijfotclkicfe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk";
-
+const sbClient = window.supabase.createClient(
+  "https://gzlytivdijfotclkicfe.supabase.co",
+  "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk"
+);
 let sb = null;
 let db = {
   orders: [],
