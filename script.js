@@ -1,23 +1,6 @@
 const SUPABASE_URL = "https://gzlytivdijfotclkicfe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-async function testSupabase(){
-  const { data, error } = await supabase
-    .from("suppliers")
-    .select("*")
-    .limit(1);
 
-  if(error){
-    console.error("Supabase connection error:", error);
-    toast("Supabase connection failed.", false);
-    return false;
-  }
-
-  console.log("Supabase connected:", data);
-  return true;
-}
-
-testSupabase();
 const KEY="AF_ERP_COMPLETE_V2";
 const seed={orders:[],customers:[],products:[],suppliers:[],expenses:[],payments:[],accounts:[],settings:{name:"Al Furqun",currency:"৳",notify:true}};
 let db=read();let page="dashboard";
