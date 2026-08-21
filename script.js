@@ -30,35 +30,18 @@ let page = "dashboard";
 
 function loadSupabase() {
   return new Promise((resolve, reject) => {
-
-    if (window.supabase && window.supabase.createClient) {
-      sb = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-
-    script.src =
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-
-    script.onload = () => {
-      if (
-        window.supabase &&
-        window.supabase.createClient
-      ) {
-        sb = window.supabase.createClient(
-          SUPABASE_URL,
-          SUPABASE_KEY
-        );
+    try {
+      if (window.supabase && window.supabase.createClient) {
+        sb = sbClient;
         resolve();
       } else {
         reject(new Error("Supabase library failed to load."));
       }
-    };
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
     script.onerror = () => {
       reject(new Error("Could not load Supabase."));
