@@ -1,3 +1,7 @@
+const SUPABASE_URL = "https://gzlytivdijfotclkicfe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_WiFXeoHUlPgvaZGbj42B2Q_B8ubHffk";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const KEY="AF_ERP_COMPLETE_V2";
 const seed={orders:[],customers:[],products:[],suppliers:[],expenses:[],payments:[],accounts:[],settings:{name:"Al Furqun",currency:"৳",notify:true}};
 let db=read();let page="dashboard";
