@@ -1,5 +1,6 @@
 /* =========================================================
-   AL FURQUN ERP — SUPABASE VERSION
+   AL FURQUN ERP
+   SUPABASE VERSION — CLEAN
    ========================================================= */
 
 const SUPABASE_URL =
@@ -27,52 +28,51 @@ let db = {
 
 let page = "dashboard";
 
+
 /* =========================================================
-   LOAD SUPABASE
+   SUPABASE
    ========================================================= */
 
 function loadSupabase() {
-  return new Promise((resolve, reject) => {
-    try {
-      if (
-        !window.supabase ||
-        !window.supabase.createClient
-      ) {
-        reject(
-          new Error(
-            "Supabase library failed to load."
-          )
-        );
-        return;
-      }
 
-      sb = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
+  try {
+
+    if (
+      !window.supabase ||
+      typeof window.supabase.createClient !== "function"
+    ) {
+      throw new Error(
+        "Supabase library is not loaded."
       );
-
-      if (!sb) {
-        reject(
-          new Error(
-            "Supabase client could not be created."
-          )
-        );
-        return;
-      }
-
-      resolve();
-
-    } catch (error) {
-      reject(error);
     }
-  });
+
+    sb = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    console.log("Supabase connected.");
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Supabase connection error:",
+      error
+    );
+
+    return false;
+  }
 }
+
 
 /* =========================================================
    HELPERS
    ========================================================= */
 
 function id(prefix) {
+
   return (
     prefix +
     "-" +
@@ -80,123 +80,186 @@ function id(prefix) {
   );
 }
 
+
 function esc(value) {
+
   return String(value ?? "").replace(
     /[&<>"']/g,
-    x => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[x])
+    function (x) {
+
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[x];
+
+    }
   );
 }
 
-function money(n) {
-  return `${db.settings.currency || "৳"} ${Number(
-    n || 0
-  ).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
+
+function money(value) {
+
+  return (
+    db.settings.currency || "৳"
+  ) +
+  " " +
+  Number(value || 0).toLocaleString(
+    "en-US",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }
+  );
 }
+
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+
+  return new Date()
+    .toISOString()
+    .slice(0, 10);
 }
 
-function sales(o) {
+
+function sales(order) {
+
   return (
-    Number(o.salePrice || 0) *
-    Number(o.quantity || 0)
+    Number(order.salePrice || 0) *
+    Number(order.quantity || 0)
   );
 }
 
-function cost(o) {
+
+function cost(order) {
+
   return (
-    Number(o.buyPrice || 0) *
-      Number(o.quantity || 0) +
-    Number(o.shipping || 0) +
-    Number(o.advanced || 0) +
-    Number(o.packingCharge || 0) +
-    Number(o.courierCharge || 0) +
-    Number(o.codReturn || 0)
+    Number(order.buyPrice || 0) *
+      Number(order.quantity || 0) +
+
+    Number(order.shipping || 0) +
+
+    Number(order.advanced || 0) +
+
+    Number(order.packingCharge || 0) +
+
+    Number(order.courierCharge || 0) +
+
+    Number(order.codReturn || 0)
   );
 }
 
-function profit(o) {
-  return sales(o) - cost(o);
+
+function profit(order) {
+
+  return sales(order) - cost(order);
 }
+
 
 function toast(message, ok = true) {
-  const box = document.getElementById("toast");
+
+  const box =
+    document.getElementById("toast");
 
   if (!box) return;
 
-  const e = document.createElement("div");
+  const item =
+    document.createElement("div");
 
-  e.className = "toast";
+  item.className = "toast";
 
-  e.innerHTML = `
+  item.innerHTML = `
     <i>${ok ? "✓" : "!"}</i>
+
     <div>
-      <b>${ok ? "Successful" : "Notice"}</b>
-      <div class="muted">${esc(message)}</div>
+      <b>
+        ${ok ? "Successful" : "Notice"}
+      </b>
+
+      <div class="muted">
+        ${esc(message)}
+      </div>
     </div>
   `;
 
-  box.appendChild(e);
+  box.appendChild(item);
 
-  setTimeout(() => e.remove(), 2700);
+  setTimeout(
+    () => item.remove(),
+    3000
+  );
 }
 
+
 function badge(status) {
-  let c = "blue";
+
+  let color = "blue";
 
   if (
     status === "Delivered" ||
     status === "Completed"
   ) {
-    c = "green";
+    color = "green";
   }
 
   if (
     status === "Returned" ||
     status === "Cancelled"
   ) {
-    c = "red";
+    color = "red";
   }
 
   if (status === "Pending") {
-    c = "yellow";
+    color = "yellow";
   }
 
   return `
-    <span class="badge ${c}">
+    <span class="badge ${color}">
       ${esc(status || "Pending")}
     </span>
   `;
 }
 
+
+function empty(text) {
+
+  return `
+    <div class="empty">
+      ${esc(text)}
+    </div>
+  `;
+}
+
+
 /* =========================================================
-   SUPABASE TABLE LOADER
+   DATABASE
    ========================================================= */
 
 async function loadTable(table) {
+
   try {
 
-    const { data, error } = await sb
+    const {
+      data,
+      error
+    } = await sb
       .from(table)
       .select("*")
-      .order("created_at", {
-        ascending: false
-      });
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
 
     if (error) {
-      console.warn(
-        `Could not load ${table}:`,
-        error.message
+
+      console.error(
+        table +
+        " load error:",
+        error
       );
 
       return [];
@@ -204,49 +267,73 @@ async function loadTable(table) {
 
     return data || [];
 
-  } catch (err) {
+  } catch (error) {
 
-    console.error(err);
+    console.error(
+      table +
+      " error:",
+      error
+    );
 
     return [];
   }
 }
 
+
 async function loadAllData() {
 
-  db.orders = await loadTable("orders");
+  if (!sb) return;
 
-  db.customers = await loadTable("customers");
+  db.orders =
+    await loadTable("orders");
 
-  db.products = await loadTable("products");
+  db.customers =
+    await loadTable("customers");
 
-  db.suppliers = await loadTable("suppliers");
+  db.products =
+    await loadTable("products");
 
-  db.expenses = await loadTable("expenses");
+  db.suppliers =
+    await loadTable("suppliers");
 
-  db.payments = await loadTable("payments");
+  db.expenses =
+    await loadTable("expenses");
 
-  db.accounts = await loadTable("accounts");
+  db.payments =
+    await loadTable("payments");
+
+  db.accounts =
+    await loadTable("accounts");
+
 
   try {
 
-    const { data } = await sb
+    const {
+      data,
+      error
+    } = await sb
       .from("settings")
       .select("*")
       .limit(1)
       .maybeSingle();
 
-    if (data) {
+    if (!error && data) {
+
       db.settings = {
         ...db.settings,
         ...data
       };
+
     }
 
-  } catch (e) {
-    console.warn("Settings load skipped.");
+  } catch (error) {
+
+    console.warn(
+      "Settings could not be loaded."
+    );
   }
 }
+
 
 /* =========================================================
    NAVIGATION
@@ -256,69 +343,140 @@ function nav() {
 
   document
     .querySelectorAll("nav button")
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.classList.toggle(
-        "active",
-        button.dataset.page === page
-      );
+        button.classList.toggle(
+          "active",
+          button.dataset.page === page
+        );
 
-    });
+      }
+    );
 }
+
 
 async function render() {
 
-  document
-    .getElementById("login")
-    ?.classList.add("hidden");
+  const login =
+    document.getElementById("login");
 
-  document
-    .getElementById("app")
-    ?.classList.remove("hidden");
+  const app =
+    document.getElementById("app");
+
+  if (login) {
+    login.classList.add("hidden");
+  }
+
+  if (app) {
+    app.classList.remove("hidden");
+  }
 
   nav();
 
-  const functions = {
+  const content =
+    document.getElementById("content");
+
+  if (!content) return;
+
+
+  const pages = {
+
     dashboard,
+
     orders,
+
     customers,
+
     products,
+
     suppliers,
+
     expenses,
+
     accounts,
+
     reports,
+
     settings
+
   };
 
-  const fn = functions[page];
 
-  if (!fn) return;
+  const fn =
+    pages[page];
 
-  document.getElementById("content").innerHTML =
-    fn();
 
-  bind();
+  if (!fn) {
+
+    content.innerHTML =
+      empty("Page not found.");
+
+    return;
+  }
+
+
+  try {
+
+    content.innerHTML =
+      fn();
+
+    bind();
+
+  } catch (error) {
+
+    console.error(
+      "Render error:",
+      error
+    );
+
+    content.innerHTML = `
+      <div class="page">
+        <div class="card">
+          <h3>Something went wrong</h3>
+          <p class="muted">
+            ${esc(error.message)}
+          </p>
+        </div>
+      </div>
+    `;
+  }
 }
 
+
 /* =========================================================
-   PAGE HEADER
+   HEADER
    ========================================================= */
 
-function head(title, subtitle, actions = "") {
+function head(
+  title,
+  subtitle,
+  actions = ""
+) {
 
   return `
     <div class="title">
+
       <div>
-        <h2>${title}</h2>
-        <div class="muted">${subtitle}</div>
+
+        <h2>
+          ${esc(title)}
+        </h2>
+
+        <div class="muted">
+          ${esc(subtitle)}
+        </div>
+
       </div>
 
       <div class="actions">
         ${actions}
       </div>
+
     </div>
   `;
 }
+
 
 /* =========================================================
    DASHBOARD
@@ -328,44 +486,58 @@ function dashboard() {
 
   const totalSales =
     db.orders.reduce(
-      (a, o) => a + sales(o),
+      (total, order) =>
+        total + sales(order),
       0
     );
+
 
   const totalProfit =
     db.orders
       .filter(
-        o =>
-          !["Returned", "Cancelled"].includes(
-            o.status
-          )
+        order =>
+          ![
+            "Returned",
+            "Cancelled"
+          ].includes(order.status)
       )
       .reduce(
-        (a, o) => a + profit(o),
+        (total, order) =>
+          total + profit(order),
         0
       );
+
 
   const totalLoss =
     db.orders
       .filter(
-        o =>
-          ["Returned", "Cancelled"].includes(
-            o.status
-          )
+        order =>
+          [
+            "Returned",
+            "Cancelled"
+          ].includes(order.status)
       )
       .reduce(
-        (a, o) =>
-          a + Math.abs(profit(o)),
+        (total, order) =>
+          total +
+          Math.abs(
+            profit(order)
+          ),
         0
       );
 
-  const recent = [...db.orders]
-    .sort((a, b) =>
-      String(b.date || "").localeCompare(
-        String(a.date || "")
+
+  const recent =
+    [...db.orders]
+      .sort(
+        (a, b) =>
+          String(b.date || "")
+            .localeCompare(
+              String(a.date || "")
+            )
       )
-    )
-    .slice(0, 7);
+      .slice(0, 7);
+
 
   return `
     <div class="page">
@@ -377,10 +549,14 @@ function dashboard() {
 
       <div class="stats">
 
-        <div class="stat"
-          onclick="page='orders';render()">
+        <div
+          class="stat"
+          onclick="page='orders';render()"
+        >
 
-          <label>Total Sales</label>
+          <label>
+            Total Sales
+          </label>
 
           <strong>
             ${money(totalSales)}
@@ -392,9 +568,12 @@ function dashboard() {
 
         </div>
 
+
         <div class="stat">
 
-          <label>Total Amount</label>
+          <label>
+            Total Amount
+          </label>
 
           <strong>
             ${money(totalSales)}
@@ -406,10 +585,15 @@ function dashboard() {
 
         </div>
 
-        <div class="stat"
-          onclick="page='reports';render()">
 
-          <label>Total Profit</label>
+        <div
+          class="stat"
+          onclick="page='reports';render()"
+        >
+
+          <label>
+            Total Profit
+          </label>
 
           <strong>
             ${money(totalProfit)}
@@ -421,10 +605,15 @@ function dashboard() {
 
         </div>
 
-        <div class="stat"
-          onclick="page='reports';render()">
 
-          <label>Total Loss</label>
+        <div
+          class="stat"
+          onclick="page='reports';render()"
+        >
+
+          <label>
+            Total Loss
+          </label>
 
           <strong>
             ${money(totalLoss)}
@@ -438,56 +627,81 @@ function dashboard() {
 
       </div>
 
+
       <div class="grid2">
 
         <div class="card">
 
           <div class="card-head">
-            <h3>Business Overview</h3>
+
+            <h3>
+              Business Overview
+            </h3>
+
           </div>
+
 
           <div class="summary">
 
             <div>
               <small>Customers</small>
-              <strong>${db.customers.length}</strong>
+              <strong>
+                ${db.customers.length}
+              </strong>
             </div>
 
             <div>
               <small>Products</small>
-              <strong>${db.products.length}</strong>
+              <strong>
+                ${db.products.length}
+              </strong>
             </div>
 
             <div>
               <small>Suppliers</small>
-              <strong>${db.suppliers.length}</strong>
+              <strong>
+                ${db.suppliers.length}
+              </strong>
             </div>
 
             <div>
-              <small>Expenses</small>
+
+              <small>
+                Expenses
+              </small>
+
               <strong>
                 ${money(
                   db.expenses.reduce(
                     (a, x) =>
-                      a + Number(x.amount || 0),
+                      a +
+                      Number(
+                        x.amount || 0
+                      ),
                     0
                   )
                 )}
               </strong>
+
             </div>
 
           </div>
 
         </div>
 
+
         <div class="card">
 
           <div class="card-head">
-            <h3>Recent Orders</h3>
+
+            <h3>
+              Recent Orders
+            </h3>
 
             <button
               class="btn"
-              onclick="page='orders';render()">
+              onclick="page='orders';render()"
+            >
               View All
             </button>
 
@@ -497,7 +711,7 @@ function dashboard() {
             recent.length
               ? orderTable(recent)
               : empty(
-                  "No orders yet. Add your first order."
+                  "No orders yet."
                 )
           }
 
@@ -509,20 +723,9 @@ function dashboard() {
   `;
 }
 
-/* =========================================================
-   EMPTY
-   ========================================================= */
-
-function empty(text) {
-  return `
-    <div class="empty">
-      ${esc(text)}
-    </div>
-  `;
-}
 
 /* =========================================================
-   ORDERS
+   ORDERS TABLE
    ========================================================= */
 
 function orderTable(rows) {
@@ -533,6 +736,7 @@ function orderTable(rows) {
       <table class="table">
 
         <thead>
+
           <tr>
             <th>Order</th>
             <th>Customer</th>
@@ -543,51 +747,70 @@ function orderTable(rows) {
             <th>Status</th>
             <th></th>
           </tr>
+
         </thead>
 
         <tbody>
 
-          ${rows.map(o => `
+          ${rows.map(
+            order => `
 
             <tr>
 
-              <td>${esc(o.id)}</td>
-
               <td>
-                ${esc(o.customerName)}
+                ${esc(order.id)}
               </td>
 
               <td>
-                ${esc(o.productName)}
+                ${esc(
+                  order.customerName
+                )}
               </td>
 
               <td>
-                ${esc(o.date)}
+                ${esc(
+                  order.productName
+                )}
               </td>
 
               <td>
-                ${money(sales(o))}
+                ${esc(order.date)}
               </td>
 
               <td>
-                ${money(profit(o))}
+                ${money(
+                  sales(order)
+                )}
               </td>
 
               <td>
-                ${badge(o.status)}
+                ${money(
+                  profit(order)
+                )}
               </td>
 
               <td>
+                ${badge(
+                  order.status
+                )}
+              </td>
+
+              <td>
+
                 <button
                   class="btn"
-                  onclick="viewOrder('${esc(o.id)}')">
+                  onclick="viewOrder('${esc(
+                    order.id
+                  )}')"
+                >
                   View
                 </button>
+
               </td>
 
             </tr>
-
-          `).join("")}
+          `
+          ).join("")}
 
         </tbody>
 
@@ -597,14 +820,22 @@ function orderTable(rows) {
   `;
 }
 
+
+/* =========================================================
+   ORDERS
+   ========================================================= */
+
 function orders() {
 
-  const rows = [...db.orders].sort(
-    (a, b) =>
-      String(b.date || "").localeCompare(
-        String(a.date || "")
-      )
-  );
+  const rows =
+    [...db.orders].sort(
+      (a, b) =>
+        String(b.date || "")
+          .localeCompare(
+            String(a.date || "")
+          )
+    );
+
 
   return `
     <div class="page">
@@ -612,19 +843,25 @@ function orders() {
       ${head(
         "Orders",
         "Create, edit and track every customer order.",
-        `<button
+        `
+        <button
           class="btn primary"
-          onclick="orderModal()">
+          onclick="orderModal()"
+        >
           + Add New Customer
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
         ${
           rows.length
             ? orderTable(rows)
-            : empty("No orders yet.")
+            : empty(
+                "No orders yet."
+              )
         }
 
       </div>
@@ -633,60 +870,78 @@ function orders() {
   `;
 }
 
+
 /* =========================================================
    CUSTOMERS
    ========================================================= */
 
 function customers() {
 
-  const q =
-    (
-      document.getElementById(
-        "customerSearch"
-      )?.value || ""
-    )
-      .toLowerCase()
-      .trim();
+  const search =
+    document.getElementById(
+      "customerSearch"
+    )?.value
+      ?.toLowerCase()
+      .trim() || "";
+
 
   const list =
-    db.customers.filter(c =>
-      !q ||
-      [
-        c.name,
-        c.phone,
-        c.address
-      ].some(v =>
-        String(v || "")
-          .toLowerCase()
-          .includes(q)
-      )
+    db.customers.filter(
+      customer => {
+
+        if (!search) {
+          return true;
+        }
+
+        return [
+          customer.name,
+          customer.phone,
+          customer.address
+        ].some(
+          value =>
+            String(
+              value || ""
+            )
+              .toLowerCase()
+              .includes(search)
+        );
+      }
     );
+
 
   return `
     <div class="page">
 
       ${head(
         "Customers",
-        "Search customer history, contact details and order totals.",
-        `<button
+        "Customer history, contact details and order totals.",
+        `
+        <button
           class="btn primary"
-          onclick="orderModal()">
+          onclick="orderModal()"
+        >
           + Add Customer
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
         <div class="field search-local">
 
-          <label>Search Customer</label>
+          <label>
+            Search Customer
+          </label>
 
           <input
             id="customerSearch"
             placeholder="Name or phone..."
-            value="${esc(q)}">
+            value="${esc(search)}"
+          >
 
         </div>
+
 
         ${
           list.length
@@ -696,6 +951,7 @@ function customers() {
                 <table class="table">
 
                   <thead>
+
                     <tr>
                       <th>Name</th>
                       <th>Phone</th>
@@ -704,85 +960,111 @@ function customers() {
                       <th>Last Order</th>
                       <th>Actions</th>
                     </tr>
+
                   </thead>
 
                   <tbody>
 
-                    ${list.map(c => {
+                    ${list.map(
+                      customer => {
 
-                      const os =
-                        db.orders.filter(
-                          o =>
-                            o.customerId === c.id
-                        );
+                        const customerOrders =
+                          db.orders.filter(
+                            order =>
+                              order.customerId ===
+                              customer.id
+                          );
 
-                      const last =
-                        [...os].sort(
-                          (a, b) =>
-                            String(
-                              b.date || ""
-                            ).localeCompare(
-                              String(
-                                a.date || ""
-                              )
-                            )
-                        )[0];
 
-                      return `
-                        <tr>
+                        const lastOrder =
+                          [...customerOrders]
+                            .sort(
+                              (a, b) =>
+                                String(
+                                  b.date || ""
+                                ).localeCompare(
+                                  String(
+                                    a.date || ""
+                                  )
+                                )
+                            )[0];
 
-                          <td>
-                            <b>${esc(c.name)}</b>
-                          </td>
 
-                          <td>
-                            ${esc(c.phone)}
-                          </td>
+                        return `
 
-                          <td>
-                            ${os.length}
-                          </td>
+                          <tr>
 
-                          <td>
-                            ${money(
-                              os.reduce(
-                                (a, o) =>
-                                  a + sales(o),
-                                0
-                              )
-                            )}
-                          </td>
+                            <td>
+                              <b>
+                                ${esc(
+                                  customer.name
+                                )}
+                              </b>
+                            </td>
 
-                          <td>
-                            ${last?.date || "-"}
-                          </td>
+                            <td>
+                              ${esc(
+                                customer.phone
+                              )}
+                            </td>
 
-                          <td>
+                            <td>
+                              ${customerOrders.length}
+                            </td>
 
-                            <button
-                              class="btn"
-                              onclick="customerView('${c.id}')">
-                              History
-                            </button>
+                            <td>
+                              ${money(
+                                customerOrders.reduce(
+                                  (a, o) =>
+                                    a +
+                                    sales(o),
+                                  0
+                                )
+                              )}
+                            </td>
 
-                            <button
-                              class="btn"
-                              onclick="customerEdit('${c.id}')">
-                              Edit
-                            </button>
+                            <td>
+                              ${
+                                lastOrder?.date ||
+                                "-"
+                              }
+                            </td>
 
-                            <button
-                              class="btn danger"
-                              onclick="customerDelete('${c.id}')">
-                              Delete
-                            </button>
+                            <td>
 
-                          </td>
+                              <button
+                                class="btn"
+                                onclick="customerView('${esc(
+                                  customer.id
+                                )}')"
+                              >
+                                History
+                              </button>
 
-                        </tr>
-                      `;
+                              <button
+                                class="btn"
+                                onclick="customerEdit('${esc(
+                                  customer.id
+                                )}')"
+                              >
+                                Edit
+                              </button>
 
-                    }).join("")}
+                              <button
+                                class="btn danger"
+                                onclick="customerDelete('${esc(
+                                  customer.id
+                                )}')"
+                              >
+                                Delete
+                              </button>
+
+                            </td>
+
+                          </tr>
+                        `;
+                      }
+                    ).join("")}
 
                   </tbody>
 
@@ -790,7 +1072,9 @@ function customers() {
 
               </div>
             `
-            : empty("No matching customers.")
+            : empty(
+                "No matching customers."
+              )
         }
 
       </div>
@@ -799,62 +1083,85 @@ function customers() {
   `;
 }
 
+
 /* =========================================================
    PRODUCTS
    ========================================================= */
 
 function products() {
 
-  const q =
-    (
-      document.getElementById(
-        "productSearch"
-      )?.value || ""
-    )
-      .toLowerCase()
-      .trim();
+  const search =
+    document.getElementById(
+      "productSearch"
+    )?.value
+      ?.toLowerCase()
+      .trim() || "";
+
 
   const list =
-    db.products.filter(p =>
-      !q ||
-      [
-        p.name,
-        db.suppliers.find(
-          s =>
-            s.id === p.supplierId
-        )?.name
-      ].some(v =>
-        String(v || "")
-          .toLowerCase()
-          .includes(q)
-      )
+    db.products.filter(
+      product => {
+
+        if (!search) {
+          return true;
+        }
+
+        const supplier =
+          db.suppliers.find(
+            s =>
+              s.id ===
+              product.supplierId
+          );
+
+
+        return [
+          product.name,
+          supplier?.name
+        ].some(
+          value =>
+            String(
+              value || ""
+            )
+              .toLowerCase()
+              .includes(search)
+        );
+      }
     );
+
 
   return `
     <div class="page">
 
       ${head(
         "Products",
-        "Search products, buy price, supplier and stock.",
-        `<button
+        "Products, supplier, price and stock.",
+        `
+        <button
           class="btn primary"
-          onclick="productModal()">
+          onclick="productModal()"
+        >
           + Add Product
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
         <div class="field search-local">
 
-          <label>Search Product</label>
+          <label>
+            Search Product
+          </label>
 
           <input
             id="productSearch"
             placeholder="Product or supplier..."
-            value="${esc(q)}">
+            value="${esc(search)}"
+          >
 
         </div>
+
 
         ${
           list.length
@@ -864,6 +1171,7 @@ function products() {
                 <table class="table">
 
                   <thead>
+
                     <tr>
                       <th>Product</th>
                       <th>Buy Price</th>
@@ -872,20 +1180,28 @@ function products() {
                       <th>Reorder</th>
                       <th>Actions</th>
                     </tr>
+
                   </thead>
 
                   <tbody>
 
-                    ${list.map(p => `
+                    ${list.map(
+                      product => `
 
                       <tr>
 
                         <td>
-                          <b>${esc(p.name)}</b>
+                          <b>
+                            ${esc(
+                              product.name
+                            )}
+                          </b>
                         </td>
 
                         <td>
-                          ${money(p.buyPrice)}
+                          ${money(
+                            product.buyPrice
+                          )}
                         </td>
 
                         <td>
@@ -893,34 +1209,49 @@ function products() {
                             db.suppliers.find(
                               s =>
                                 s.id ===
-                                p.supplierId
-                            )?.name || "-"
+                                product.supplierId
+                            )?.name ||
+                              "-"
                           )}
                         </td>
 
-                        <td>${p.stock}</td>
+                        <td>
+                          ${Number(
+                            product.stock || 0
+                          )}
+                        </td>
 
-                        <td>${p.reorder}</td>
+                        <td>
+                          ${Number(
+                            product.reorder || 0
+                          )}
+                        </td>
 
                         <td>
 
                           <button
                             class="btn"
-                            onclick="productModal('${p.id}')">
+                            onclick="productModal('${esc(
+                              product.id
+                            )}')"
+                          >
                             Edit
                           </button>
 
                           <button
                             class="btn danger"
-                            onclick="productDelete('${p.id}')">
+                            onclick="productDelete('${esc(
+                              product.id
+                            )}')"
+                          >
                             Delete
                           </button>
 
                         </td>
 
                       </tr>
-
-                    `).join("")}
+                    `
+                    ).join("")}
 
                   </tbody>
 
@@ -928,7 +1259,9 @@ function products() {
 
               </div>
             `
-            : empty("No matching products.")
+            : empty(
+                "No matching products."
+              )
         }
 
       </div>
@@ -936,6 +1269,7 @@ function products() {
     </div>
   `;
 }
+
 
 /* =========================================================
    SUPPLIERS
@@ -948,13 +1282,17 @@ function suppliers() {
 
       ${head(
         "Suppliers",
-        "Supplier contacts, links and payment records.",
-        `<button
+        "Supplier contacts, links and products.",
+        `
+        <button
           class="btn primary"
-          onclick="supplierModal()">
+          onclick="supplierModal()"
+        >
           + Add Supplier
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
@@ -966,6 +1304,7 @@ function suppliers() {
                 <table class="table">
 
                   <thead>
+
                     <tr>
                       <th>Name</th>
                       <th>WhatsApp</th>
@@ -973,42 +1312,57 @@ function suppliers() {
                       <th>Products</th>
                       <th>Actions</th>
                     </tr>
+
                   </thead>
 
                   <tbody>
 
-                    ${db.suppliers.map(s => `
+                    ${db.suppliers.map(
+                      supplier => `
 
                       <tr>
 
                         <td>
-                          <b>${esc(s.name)}</b>
+                          <b>
+                            ${esc(
+                              supplier.name
+                            )}
+                          </b>
                         </td>
 
                         <td>
                           ${esc(
-                            s.whatsapp || "-"
+                            supplier.whatsapp ||
+                            "-"
                           )}
                         </td>
 
                         <td>
+
                           ${
-                            s.link
-                              ? `<a href="${esc(
-                                  s.link
-                                )}" target="_blank">
+                            supplier.link
+                              ? `
+                                <a
+                                  href="${esc(
+                                    supplier.link
+                                  )}"
+                                  target="_blank"
+                                  rel="noopener"
+                                >
                                   Open
-                                </a>`
+                                </a>
+                              `
                               : "-"
                           }
+
                         </td>
 
                         <td>
                           ${
                             db.products.filter(
-                              p =>
-                                p.supplierId ===
-                                s.id
+                              product =>
+                                product.supplierId ===
+                                supplier.id
                             ).length
                           }
                         </td>
@@ -1017,21 +1371,27 @@ function suppliers() {
 
                           <button
                             class="btn"
-                            onclick="supplierModal('${s.id}')">
+                            onclick="supplierModal('${esc(
+                              supplier.id
+                            )}')"
+                          >
                             Edit
                           </button>
 
                           <button
                             class="btn danger"
-                            onclick="supplierDelete('${s.id}')">
+                            onclick="supplierDelete('${esc(
+                              supplier.id
+                            )}')"
+                          >
                             Delete
                           </button>
 
                         </td>
 
                       </tr>
-
-                    `).join("")}
+                    `
+                    ).join("")}
 
                   </tbody>
 
@@ -1039,7 +1399,9 @@ function suppliers() {
 
               </div>
             `
-            : empty("No suppliers yet.")
+            : empty(
+                "No suppliers yet."
+              )
         }
 
       </div>
@@ -1048,11 +1410,14 @@ function suppliers() {
   `;
 }
 
+
 /* =========================================================
-   SUPPLIER OPTIONS
+   OPTIONS
    ========================================================= */
 
-function suppliersOptions() {
+function suppliersOptions(
+  selected = ""
+) {
 
   return `
     <option value="">
@@ -1060,16 +1425,30 @@ function suppliersOptions() {
     </option>
 
     ${db.suppliers.map(
-      s => `
-        <option value="${s.id}">
-          ${esc(s.name)}
+      supplier => `
+        <option
+          value="${esc(
+            supplier.id
+          )}"
+          ${
+            supplier.id === selected
+              ? "selected"
+              : ""
+          }
+        >
+          ${esc(
+            supplier.name
+          )}
         </option>
       `
     ).join("")}
   `;
 }
 
-function productsOptions() {
+
+function productsOptions(
+  selected = ""
+) {
 
   return `
     <option value="">
@@ -1077,14 +1456,26 @@ function productsOptions() {
     </option>
 
     ${db.products.map(
-      p => `
-        <option value="${p.id}">
-          ${esc(p.name)}
+      product => `
+        <option
+          value="${esc(
+            product.id
+          )}"
+          ${
+            product.id === selected
+              ? "selected"
+              : ""
+          }
+        >
+          ${esc(
+            product.name
+          )}
         </option>
       `
     ).join("")}
   `;
 }
+
 
 /* =========================================================
    MODAL
@@ -1092,22 +1483,35 @@ function productsOptions() {
 
 function openModal(content) {
 
-  document.getElementById(
-    "modal"
-  ).innerHTML = `
+  const modal =
+    document.getElementById("modal");
+
+  if (!modal) return;
+
+  modal.innerHTML = `
     <div class="modal-bg">
+
       <div class="modal-box">
+
         ${content}
+
       </div>
+
     </div>
   `;
 }
 
+
 function closeModal() {
-  document.getElementById(
-    "modal"
-  ).innerHTML = "";
+
+  const modal =
+    document.getElementById("modal");
+
+  if (modal) {
+    modal.innerHTML = "";
+  }
 }
+
 
 /* =========================================================
    ORDER MODAL
@@ -1115,30 +1519,52 @@ function closeModal() {
 
 function orderModal(existing = null) {
 
-  const o =
-    existing ||
-    {
+  const order =
+    existing || {
+
       id: id("ORD"),
+
       date: today(),
+
       source: "Marketplace",
+
       status: "Pending",
+
       quantity: 1,
+
       shipping: 0,
+
       advanced: 0,
+
       currentPrice: 0,
+
       salePrice: 0,
+
       buyPrice: 0,
+
       packingCharge: 0,
+
       deliveryCharge: 0,
+
       codReturn: 0,
-      courierCharge: 0
+
+      courierCharge: 0,
+
+      productId: "",
+
+      supplierId: "",
+
+      courier: "Pathao"
+
     };
+
 
   openModal(`
 
     <div class="modal-head">
 
       <div>
+
         <h3>
           ${
             existing
@@ -1148,41 +1574,68 @@ function orderModal(existing = null) {
         </h3>
 
         <div class="muted">
-          Products and suppliers added in their own sections automatically appear here.
+          Product and supplier lists update automatically.
         </div>
+
       </div>
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="orderForm">
 
       <div class="form-grid three">
 
+
         <div class="field">
-          <label>Date</label>
+
+          <label>
+            Date
+          </label>
+
           <input
             name="date"
             type="date"
-            value="${esc(o.date)}"
-            required>
+            value="${esc(
+              order.date || today()
+            )}"
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Order ID</label>
+
+          <label>
+            Order ID
+          </label>
+
           <input
             name="id"
-            value="${esc(o.id)}"
-            required>
+            value="${esc(
+              order.id
+            )}"
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Source</label>
+
+          <label>
+            Source
+          </label>
+
           <select name="source">
 
             ${
@@ -1194,204 +1647,367 @@ function orderModal(existing = null) {
                 "Phone"
               ]
                 .map(
-                  x =>
-                    `<option ${
-                      o.source === x
-                        ? "selected"
-                        : ""
-                    }>${x}</option>`
+                  source => `
+                    <option
+                      value="${source}"
+                      ${
+                        order.source ===
+                        source
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${source}
+                    </option>
+                  `
                 )
                 .join("")
             }
 
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Customer Name</label>
+
+          <label>
+            Customer Name
+          </label>
+
           <input
             name="customerName"
             value="${esc(
-              o.customerName || ""
+              order.customerName ||
+              ""
             )}"
-            required>
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Phone</label>
+
+          <label>
+            Phone
+          </label>
+
           <input
             name="phone"
-            value="${esc(o.phone || "")}"
-            required>
+            value="${esc(
+              order.phone ||
+              ""
+            )}"
+            required
+          >
+
         </div>
+
 
         <div class="field fullrow">
-          <label>Address</label>
+
+          <label>
+            Address
+          </label>
+
           <textarea
             name="address"
-            required>${esc(
-              o.address || ""
-            )}</textarea>
+            required
+          >${esc(
+            order.address ||
+            ""
+          )}</textarea>
+
         </div>
 
+
         <div class="field">
-          <label>Product</label>
+
+          <label>
+            Product
+          </label>
 
           <select
             name="productId"
-            id="op">
-
-            ${productsOptions()}
-
+            id="op"
+          >
+            ${productsOptions(
+              order.productId
+            )}
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Quantity</label>
+
+          <label>
+            Quantity
+          </label>
 
           <input
             name="quantity"
             id="qty"
             type="number"
             min="1"
-            value="${o.quantity || 1}">
+            value="${Number(
+              order.quantity || 1
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Sell* / Unit</label>
+
+          <label>
+            Sell / Unit
+          </label>
 
           <input
             name="salePrice"
             id="sale"
             type="number"
             step=".01"
-            value="${o.salePrice || 0}">
+            value="${Number(
+              order.salePrice || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Buy* / Unit</label>
+
+          <label>
+            Buy / Unit
+          </label>
 
           <input
             name="buyPrice"
             id="buy"
             type="number"
             step=".01"
-            value="${o.buyPrice || 0}">
+            value="${Number(
+              order.buyPrice || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Shipping*</label>
+
+          <label>
+            Shipping
+          </label>
 
           <input
             name="shipping"
             id="shipping"
             type="number"
             step=".01"
-            value="${o.shipping || 0}">
+            value="${Number(
+              order.shipping || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Advanced*</label>
+
+          <label>
+            Advanced
+          </label>
 
           <input
             name="advanced"
             id="advanced"
             type="number"
             step=".01"
-            value="${o.advanced || 0}">
+            value="${Number(
+              order.advanced || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Current</label>
+
+          <label>
+            Current Price
+          </label>
 
           <input
             name="currentPrice"
             id="current"
             type="number"
             step=".01"
-            value="${o.currentPrice || 0}">
+            value="${Number(
+              order.currentPrice || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Packaging</label>
+
+          <label>
+            Packaging
+          </label>
 
           <input
             name="packingCharge"
             id="pack"
             type="number"
             step=".01"
-            value="${o.packingCharge || 0}">
+            value="${Number(
+              order.packingCharge || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Delivery Charge</label>
+
+          <label>
+            Delivery Charge
+          </label>
 
           <input
             name="deliveryCharge"
             id="delivery"
             type="number"
             step=".01"
-            value="${o.deliveryCharge || 0}">
+            value="${Number(
+              order.deliveryCharge || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>COD / Return</label>
+
+          <label>
+            COD / Return
+          </label>
 
           <input
             name="codReturn"
             id="cod"
             type="number"
             step=".01"
-            value="${o.codReturn || 0}">
+            value="${Number(
+              order.codReturn || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Courier Charge</label>
+
+          <label>
+            Courier Charge
+          </label>
 
           <input
             name="courierCharge"
             id="courierCharge"
             type="number"
             step=".01"
-            value="${o.courierCharge || 0}">
+            value="${Number(
+              order.courierCharge || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Supplier</label>
+
+          <label>
+            Supplier
+          </label>
 
           <select
             name="supplierId"
-            id="osupplier">
-
-            ${suppliersOptions()}
-
+            id="osupplier"
+          >
+            ${suppliersOptions(
+              order.supplierId
+            )}
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Courier</label>
+
+          <label>
+            Courier
+          </label>
 
           <select name="courier">
 
-            <option>Pathao</option>
-            <option>Steadfast</option>
+            <option
+              value="Pathao"
+              ${
+                order.courier ===
+                "Pathao"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Pathao
+            </option>
+
+            <option
+              value="Steadfast"
+              ${
+                order.courier ===
+                "Steadfast"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Steadfast
+            </option>
 
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Tracking Link</label>
+
+          <label>
+            Tracking Link
+          </label>
 
           <input
             name="trackingLink"
             type="url"
             value="${esc(
-              o.trackingLink || ""
-            )}">
+              order.trackingLink ||
+              ""
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Status</label>
+
+          <label>
+            Status
+          </label>
 
           <select name="status">
 
@@ -1406,73 +2022,116 @@ function orderModal(existing = null) {
                 "Cancelled"
               ]
                 .map(
-                  x =>
-                    `<option ${
-                      o.status === x
-                        ? "selected"
-                        : ""
-                    }>${x}</option>`
+                  status => `
+                    <option
+                      value="${status}"
+                      ${
+                        order.status ===
+                        status
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${status}
+                    </option>
+                  `
                 )
                 .join("")
             }
 
           </select>
+
         </div>
 
+
       </div>
+
 
       <div class="calc-card">
 
         <div class="calc-title">
+
           Calculations
-          <span>Live</span>
+
+          <span>
+            Live
+          </span>
+
         </div>
+
 
         <div class="calc-grid">
 
           <div>
-            <label>Payable</label>
+
+            <label>
+              Payable
+            </label>
+
             <strong id="calcPayable">
               ৳ 0.00
             </strong>
+
           </div>
 
+
           <div>
-            <label>Profit / Loss</label>
+
+            <label>
+              Profit / Loss
+            </label>
+
             <strong id="calcProfit">
               ৳ 0.00
             </strong>
+
           </div>
 
+
           <div>
-            <label>Receivable</label>
+
+            <label>
+              Receivable
+            </label>
+
             <strong id="calcReceivable">
               ৳ 0.00
             </strong>
+
           </div>
 
         </div>
 
+
         <div class="calc-note">
-          Profit/Loss = sales − product cost − shipping − advanced − packaging − courier charge − COD/return.
+
+          Profit/Loss =
+          Sales − Product Cost − Shipping −
+          Advanced − Packaging − Courier −
+          COD/Return
+
         </div>
 
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
         <button
-          class="btn primary">
+          type="submit"
+          class="btn primary"
+        >
           ${
             existing
-              ? "Update"
+              ? "Update Order"
               : "Save Customer & Order"
           }
         </button>
@@ -1483,93 +2142,107 @@ function orderModal(existing = null) {
 
   `);
 
-  document.getElementById("op").value =
-    o.productId || "";
 
-  document.getElementById(
-    "osupplier"
-  ).value = o.supplierId || "";
+  const productSelect =
+    document.getElementById("op");
 
-  document.querySelector(
-    "[name=courier]"
-  ).value =
-    o.courier || "Pathao";
+  const supplierSelect =
+    document.getElementById(
+      "osupplier"
+    );
 
-  const calc = () => {
+
+  function calculate() {
 
     const q =
       Number(
-        document.getElementById("qty").value
+        document.getElementById(
+          "qty"
+        )?.value
       ) || 0;
+
 
     const buy =
       Number(
-        document.getElementById("buy").value
+        document.getElementById(
+          "buy"
+        )?.value
       ) || 0;
+
 
     const sell =
       Number(
-        document.getElementById("sale").value
+        document.getElementById(
+          "sale"
+        )?.value
       ) || 0;
+
 
     const shipping =
       Number(
         document.getElementById(
           "shipping"
-        ).value
+        )?.value
       ) || 0;
+
 
     const advanced =
       Number(
         document.getElementById(
           "advanced"
-        ).value
+        )?.value
       ) || 0;
 
-    const pack =
+
+    const packing =
       Number(
         document.getElementById(
           "pack"
-        ).value
+        )?.value
       ) || 0;
+
 
     const courier =
       Number(
         document.getElementById(
           "courierCharge"
-        ).value
+        )?.value
       ) || 0;
+
 
     const cod =
       Number(
         document.getElementById(
           "cod"
-        ).value
+        )?.value
       ) || 0;
+
 
     const delivery =
       Number(
         document.getElementById(
           "delivery"
-        ).value
+        )?.value
       ) || 0;
+
 
     const totalSales =
       sell * q;
 
-    const productCost =
-      buy * q;
 
     const payable =
-      productCost +
+      buy * q +
       shipping +
       advanced +
-      pack +
+      packing +
       courier +
       cod;
 
+
     const pl =
-      totalSales - payable;
+      totalSales -
+      payable;
+
 
     const receivable =
       totalSales +
@@ -1577,68 +2250,90 @@ function orderModal(existing = null) {
       cod -
       advanced;
 
+
     document.getElementById(
       "calcPayable"
-    ).textContent = money(payable);
+    ).textContent =
+      money(payable);
 
-    document.getElementById(
-      "calcProfit"
-    ).textContent = money(pl);
 
-    document.getElementById(
-      "calcProfit"
-    ).className =
+    const profitBox =
+      document.getElementById(
+        "calcProfit"
+      );
+
+    profitBox.textContent =
+      money(pl);
+
+
+    profitBox.className =
       pl >= 0
         ? "calc-positive"
         : "calc-negative";
+
 
     document.getElementById(
       "calcReceivable"
     ).textContent =
       money(receivable);
-  };
+  }
 
-  document.getElementById(
-    "op"
-  ).onchange = () => {
 
-    const p =
-      db.products.find(
-        x =>
-          x.id ===
-          document.getElementById(
-            "op"
-          ).value
-      );
+  if (productSelect) {
 
-    if (p) {
+    productSelect.onchange =
+      function () {
 
-      document.getElementById(
-        "buy"
-      ).value =
-        p.buyPrice || 0;
+        const product =
+          db.products.find(
+            p =>
+              p.id ===
+              productSelect.value
+          );
 
-      document.getElementById(
-        "current"
-      ).value =
-        p.currentPrice ||
-        p.buyPrice ||
-        0;
 
-      document.getElementById(
-        "sale"
-      ).value =
-        p.sellPrice || 0;
+        if (!product) {
 
-      document.getElementById(
-        "osupplier"
-      ).value =
-        p.supplierId || "";
+          calculate();
 
-    }
+          return;
+        }
 
-    calc();
-  };
+
+        document.getElementById(
+          "buy"
+        ).value =
+          Number(
+            product.buyPrice || 0
+          );
+
+
+        document.getElementById(
+          "current"
+        ).value =
+          Number(
+            product.currentPrice ||
+            product.buyPrice ||
+            0
+          );
+
+
+        document.getElementById(
+          "sale"
+        ).value =
+          Number(
+            product.sellPrice || 0
+          );
+
+
+        supplierSelect.value =
+          product.supplierId || "";
+
+
+        calculate();
+      };
+  }
+
 
   [
     "qty",
@@ -1651,207 +2346,310 @@ function orderModal(existing = null) {
     "delivery",
     "cod",
     "courierCharge"
-  ].forEach(x => {
+  ].forEach(
+    fieldId => {
 
-    document
-      .getElementById(x)
-      .addEventListener(
-        "input",
-        calc
-      );
-
-  });
-
-  calc();
-
-  document.getElementById(
-    "orderForm"
-  ).onsubmit = async e => {
-
-    e.preventDefault();
-
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
-
-    [
-      "quantity",
-      "salePrice",
-      "buyPrice",
-      "shipping",
-      "advanced",
-      "currentPrice",
-      "deliveryCharge",
-      "packingCharge",
-      "codReturn",
-      "courierCharge"
-    ].forEach(k => {
-      d[k] =
-        Number(d[k]) || 0;
-    });
-
-    d.productName =
-      db.products.find(
-        p =>
-          p.id ===
-          d.productId
-      )?.name ||
-      "Custom Product";
-
-    if (existing) {
-
-      const { error } =
-        await sb
-          .from("orders")
-          .update(d)
-          .eq("id", existing.id);
-
-      if (error) {
-
-        console.error(error);
-
-        toast(
-          "Order update failed: " +
-            error.message,
-          false
+      const element =
+        document.getElementById(
+          fieldId
         );
 
-        return;
+      if (element) {
+
+        element.addEventListener(
+          "input",
+          calculate
+        );
+
       }
 
-      const { error: ce } =
-        await sb
-          .from("customers")
-          .update({
-            name: d.customerName,
-            phone: d.phone,
-            address: d.address
-          })
+    }
+  );
+
+
+  calculate();
+
+
+  const form =
+    document.getElementById(
+      "orderForm"
+    );
+
+
+  form.onsubmit =
+    async function (event) {
+
+      event.preventDefault();
+
+
+      const data =
+        Object.fromEntries(
+          new FormData(form)
+        );
+
+
+      [
+        "quantity",
+        "salePrice",
+        "buyPrice",
+        "shipping",
+        "advanced",
+        "currentPrice",
+        "deliveryCharge",
+        "packingCharge",
+        "codReturn",
+        "courierCharge"
+      ].forEach(
+        key => {
+
+          data[key] =
+            Number(
+              data[key]
+            ) || 0;
+
+        }
+      );
+
+
+      data.productName =
+        db.products.find(
+          product =>
+            product.id ===
+            data.productId
+        )?.name ||
+        "Custom Product";
+
+
+      if (existing) {
+
+        const {
+          error
+        } = await sb
+          .from("orders")
+          .update(data)
           .eq(
             "id",
-            existing.customerId
+            existing.id
           );
 
-      if (ce) {
-        console.warn(ce);
-      }
 
-    } else {
+        if (error) {
 
-      d.customerId =
-        id("CUS");
-
-      const customer = {
-        id: d.customerId,
-        name: d.customerName,
-        phone: d.phone,
-        address: d.address
-      };
-
-      const { error: customerError } =
-        await sb
-          .from("customers")
-          .insert(customer);
-
-      if (customerError) {
-
-        console.error(customerError);
-
-        toast(
-          "Customer save failed: " +
-            customerError.message,
-          false
-        );
-
-        return;
-      }
-
-      const { error: orderError } =
-        await sb
-          .from("orders")
-          .insert(d);
-
-      if (orderError) {
-
-        console.error(orderError);
-
-        toast(
-          "Order save failed: " +
-            orderError.message,
-          false
-        );
-
-        return;
-      }
-
-      if (d.productId) {
-
-        const p =
-          db.products.find(
-            x =>
-              x.id ===
-              d.productId
+          toast(
+            "Order update failed: " +
+              error.message,
+            false
           );
 
-        if (p) {
+          return;
+        }
 
-          const newStock =
-            Math.max(
-              0,
-              Number(p.stock || 0) -
-                Number(
-                  d.quantity || 0
-                )
-            );
 
-          await sb
-            .from("products")
+        if (existing.customerId) {
+
+          const {
+            error:
+              customerError
+          } = await sb
+            .from("customers")
             .update({
-              stock: newStock
+
+              name:
+                data.customerName,
+
+              phone:
+                data.phone,
+
+              address:
+                data.address
+
             })
             .eq(
               "id",
-              d.productId
+              existing.customerId
             );
+
+
+          if (customerError) {
+
+            console.warn(
+              customerError
+            );
+
+          }
+
         }
+
+      } else {
+
+        data.customerId =
+          id("CUS");
+
+
+        const customer = {
+
+          id:
+            data.customerId,
+
+          name:
+            data.customerName,
+
+          phone:
+            data.phone,
+
+          address:
+            data.address
+
+        };
+
+
+        const {
+          error:
+            customerError
+        } = await sb
+          .from("customers")
+          .insert(
+            customer
+          );
+
+
+        if (customerError) {
+
+          toast(
+            "Customer save failed: " +
+              customerError.message,
+            false
+          );
+
+          return;
+        }
+
+
+        const {
+          error:
+            orderError
+        } = await sb
+          .from("orders")
+          .insert(
+            data
+          );
+
+
+        if (orderError) {
+
+          toast(
+            "Order save failed: " +
+              orderError.message,
+            false
+          );
+
+          return;
+        }
+
+
+        if (data.productId) {
+
+          const product =
+            db.products.find(
+              p =>
+                p.id ===
+                data.productId
+            );
+
+
+          if (product) {
+
+            const newStock =
+              Math.max(
+                0,
+                Number(
+                  product.stock || 0
+                ) -
+                Number(
+                  data.quantity || 0
+                )
+              );
+
+
+            await sb
+              .from("products")
+              .update({
+                stock:
+                  newStock
+              })
+              .eq(
+                "id",
+                data.productId
+              );
+          }
+
+        }
+
       }
-    }
 
-    closeModal();
 
-    toast(
-      existing
-        ? "Order updated successfully."
-        : "Customer and order added successfully."
-    );
+      closeModal();
 
-    await loadAllData();
+      toast(
+        existing
+          ? "Order updated successfully."
+          : "Customer and order added successfully."
+      );
 
-    render();
-  };
+
+      await loadAllData();
+
+      render();
+
+    };
+
 }
+
 
 /* =========================================================
    PRODUCT MODAL
    ========================================================= */
 
-function productModal(pid = null) {
+function productModal(
+  productId = null
+) {
 
-  const p =
-    pid
+  const product =
+    productId
       ? db.products.find(
-          x => x.id === pid
+          p =>
+            p.id ===
+            productId
         )
       : {
+
           name: "",
+
           currentPrice: 0,
+
           buyPrice: 0,
+
           sellPrice: 0,
+
           supplierId: "",
+
           stock: 0,
+
           reorder: 2
+
         };
+
+
+  if (!product) {
+
+    toast(
+      "Product not found.",
+      false
+    );
+
+    return;
+  }
+
 
   openModal(`
 
@@ -1859,7 +2657,7 @@ function productModal(pid = null) {
 
       <h3>
         ${
-          pid
+          productId
             ? "Edit Product"
             : "Add Product"
         }
@@ -1867,195 +2665,313 @@ function productModal(pid = null) {
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="productForm">
 
       <div class="form-grid">
 
-        <div class="field">
-          <label>Product Name</label>
-          <input
-            name="name"
-            value="${esc(p.name)}"
-            required>
-        </div>
 
         <div class="field">
-          <label>Current Price</label>
+
+          <label>
+            Product Name
+          </label>
+
+          <input
+            name="name"
+            value="${esc(
+              product.name
+            )}"
+            required
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Current Price
+          </label>
+
           <input
             name="currentPrice"
             type="number"
             step=".01"
-            value="${p.currentPrice || 0}">
+            value="${Number(
+              product.currentPrice || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Buy Price</label>
+
+          <label>
+            Buy Price
+          </label>
+
           <input
             name="buyPrice"
             type="number"
             step=".01"
-            value="${p.buyPrice || 0}"
-            required>
+            value="${Number(
+              product.buyPrice || 0
+            )}"
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Sell Price</label>
+
+          <label>
+            Sell Price
+          </label>
+
           <input
             name="sellPrice"
             type="number"
             step=".01"
-            value="${p.sellPrice || 0}">
+            value="${Number(
+              product.sellPrice || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Supplier</label>
+
+          <label>
+            Supplier
+          </label>
 
           <select name="supplierId">
-            ${suppliersOptions()}
+
+            ${suppliersOptions(
+              product.supplierId
+            )}
+
           </select>
 
         </div>
 
+
         <div class="field">
-          <label>Opening Stock</label>
+
+          <label>
+            Opening Stock
+          </label>
 
           <input
             name="stock"
             type="number"
-            value="${p.stock || 0}">
+            value="${Number(
+              product.stock || 0
+            )}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Reorder Level</label>
+
+          <label>
+            Reorder Level
+          </label>
 
           <input
             name="reorder"
             type="number"
-            value="${p.reorder || 0}">
+            value="${Number(
+              product.reorder || 0
+            )}"
+          >
+
         </div>
 
+
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
-        <button class="btn primary">
+        <button
+          type="submit"
+          class="btn primary"
+        >
           Save Product
         </button>
 
       </div>
 
     </form>
+
   `);
 
-  document.querySelector(
-    "#productForm [name=supplierId]"
-  ).value =
-    p.supplierId || "";
 
   document.getElementById(
     "productForm"
-  ).onsubmit = async e => {
+  ).onsubmit =
+    async function (event) {
 
-    e.preventDefault();
+      event.preventDefault();
 
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
 
-    d.currentPrice =
-      Number(d.currentPrice) || 0;
+      const data =
+        Object.fromEntries(
+          new FormData(
+            event.target
+          )
+        );
 
-    d.buyPrice =
-      Number(d.buyPrice) || 0;
 
-    d.sellPrice =
-      Number(d.sellPrice) || 0;
+      data.currentPrice =
+        Number(
+          data.currentPrice
+        ) || 0;
 
-    d.stock =
-      Number(d.stock) || 0;
 
-    d.reorder =
-      Number(d.reorder) || 0;
+      data.buyPrice =
+        Number(
+          data.buyPrice
+        ) || 0;
 
-    let result;
 
-    if (pid) {
+      data.sellPrice =
+        Number(
+          data.sellPrice
+        ) || 0;
 
-      result =
-        await sb
-          .from("products")
-          .update(d)
-          .eq("id", pid);
 
-    } else {
+      data.stock =
+        Number(
+          data.stock
+        ) || 0;
 
-      result =
-        await sb
-          .from("products")
-          .insert({
-            id: id("PRD"),
-            ...d
-          });
 
-    }
+      data.reorder =
+        Number(
+          data.reorder
+        ) || 0;
 
-    if (result.error) {
 
-      console.error(result.error);
+      let result;
+
+
+      if (productId) {
+
+        result =
+          await sb
+            .from("products")
+            .update(data)
+            .eq(
+              "id",
+              productId
+            );
+
+      } else {
+
+        result =
+          await sb
+            .from("products")
+            .insert({
+
+              id:
+                id("PRD"),
+
+              ...data
+
+            });
+
+      }
+
+
+      if (result.error) {
+
+        toast(
+          "Product save failed: " +
+            result.error.message,
+          false
+        );
+
+        return;
+      }
+
+
+      closeModal();
 
       toast(
-        "Product save failed: " +
-          result.error.message,
-        false
+        productId
+          ? "Product updated successfully."
+          : "Product added successfully."
       );
 
-      return;
-    }
 
-    closeModal();
+      await loadAllData();
 
-    toast(
-      pid
-        ? "Product updated successfully."
-        : "Product added successfully."
-    );
+      render();
 
-    await loadAllData();
+    };
 
-    render();
-  };
 }
+
 
 /* =========================================================
    SUPPLIER MODAL
    ========================================================= */
 
-function supplierModal(sid = null) {
+function supplierModal(
+  supplierId = null
+) {
 
-  const s =
-    sid
+  const supplier =
+    supplierId
       ? db.suppliers.find(
-          x => x.id === sid
+          s =>
+            s.id ===
+            supplierId
         )
       : {
+
           name: "",
+
           whatsapp: "",
+
           link: ""
+
         };
+
+
+  if (!supplier) {
+
+    toast(
+      "Supplier not found.",
+      false
+    );
+
+    return;
+  }
+
 
   openModal(`
 
@@ -2063,7 +2979,7 @@ function supplierModal(sid = null) {
 
       <h3>
         ${
-          sid
+          supplierId
             ? "Edit Supplier"
             : "Add Supplier"
         }
@@ -2071,136 +2987,192 @@ function supplierModal(sid = null) {
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="supplierForm">
 
       <div class="form-grid">
 
+
         <div class="field">
-          <label>Supplier Name</label>
+
+          <label>
+            Supplier Name
+          </label>
 
           <input
             name="name"
-            value="${esc(s.name)}"
-            required>
+            value="${esc(
+              supplier.name
+            )}"
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>WhatsApp Number</label>
+
+          <label>
+            WhatsApp Number
+          </label>
 
           <input
             name="whatsapp"
             value="${esc(
-              s.whatsapp || ""
-            )}">
+              supplier.whatsapp ||
+              ""
+            )}"
+          >
+
         </div>
 
+
         <div class="field fullrow">
-          <label>Any Link</label>
+
+          <label>
+            Supplier Link
+          </label>
 
           <input
             name="link"
             type="url"
             value="${esc(
-              s.link || ""
-            )}">
+              supplier.link ||
+              ""
+            )}"
+          >
+
         </div>
 
+
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
-        <button class="btn primary">
+        <button
+          type="submit"
+          class="btn primary"
+        >
           Save Supplier
         </button>
 
       </div>
 
     </form>
+
   `);
+
 
   document.getElementById(
     "supplierForm"
-  ).onsubmit = async e => {
+  ).onsubmit =
+    async function (event) {
 
-    e.preventDefault();
+      event.preventDefault();
 
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
 
-    let result;
+      const data =
+        Object.fromEntries(
+          new FormData(
+            event.target
+          )
+        );
 
-    if (sid) {
 
-      result =
-        await sb
-          .from("suppliers")
-          .update(d)
-          .eq("id", sid);
+      let result;
 
-    } else {
 
-      result =
-        await sb
-          .from("suppliers")
-          .insert({
-            id: id("SUP"),
-            ...d
-          });
+      if (supplierId) {
 
-    }
+        result =
+          await sb
+            .from("suppliers")
+            .update(data)
+            .eq(
+              "id",
+              supplierId
+            );
 
-    if (result.error) {
+      } else {
+
+        result =
+          await sb
+            .from("suppliers")
+            .insert({
+
+              id:
+                id("SUP"),
+
+              ...data
+
+            });
+
+      }
+
+
+      if (result.error) {
+
+        toast(
+          "Supplier save failed: " +
+            result.error.message,
+          false
+        );
+
+        return;
+      }
+
+
+      closeModal();
 
       toast(
-        "Supplier save failed: " +
-          result.error.message,
-        false
+        supplierId
+          ? "Supplier updated successfully."
+          : "Supplier added successfully."
       );
 
-      return;
-    }
 
-    closeModal();
+      await loadAllData();
 
-    toast(
-      sid
-        ? "Supplier updated successfully."
-        : "Supplier added successfully."
-    );
+      render();
 
-    await loadAllData();
+    };
 
-    render();
-  };
 }
 
+
 /* =========================================================
-   EXPENSE
+   EXPENSES
    ========================================================= */
 
 function expenses() {
 
   const total =
     db.expenses.reduce(
-      (a, x) =>
-        a + Number(x.amount || 0),
+      (total, expense) =>
+        total +
+        Number(
+          expense.amount || 0
+        ),
       0
     );
+
 
   return `
     <div class="page">
@@ -2208,81 +3180,125 @@ function expenses() {
       ${head(
         "Expenses",
         "Record business expenses.",
-        `<button
+        `
+        <button
           class="btn primary"
-          onclick="expenseModal()">
+          onclick="expenseModal()"
+        >
           + Add Expense
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
         <div class="summary">
 
           <div>
-            <small>Total Expenses</small>
-            <strong>${money(total)}</strong>
+
+            <small>
+              Total Expenses
+            </small>
+
+            <strong>
+              ${money(total)}
+            </strong>
+
           </div>
 
+
           <div>
-            <small>Records</small>
+
+            <small>
+              Records
+            </small>
+
             <strong>
               ${db.expenses.length}
             </strong>
+
           </div>
 
         </div>
 
+
         ${
           db.expenses.length
             ? `
-              <table class="table">
 
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Category</th>
-                    <th>Amount</th>
-                    <th>Note</th>
-                    <th></th>
-                  </tr>
-                </thead>
+              <div class="table-wrap">
 
-                <tbody>
+                <table class="table">
 
-                  ${db.expenses.map(x => `
+                  <thead>
 
                     <tr>
-
-                      <td>${esc(x.date)}</td>
-
-                      <td>${esc(
-                        x.category
-                      )}</td>
-
-                      <td>${money(
-                        x.amount
-                      )}</td>
-
-                      <td>${esc(
-                        x.note || "-"
-                      )}</td>
-
-                      <td>
-                        <button
-                          class="btn danger"
-                          onclick="expenseDelete('${x.id}')">
-                          Delete
-                        </button>
-                      </td>
-
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Amount</th>
+                      <th>Note</th>
+                      <th></th>
                     </tr>
 
-                  `).join("")}
+                  </thead>
 
-                </tbody>
+                  <tbody>
 
-              </table>
+                    ${db.expenses.map(
+                      expense => `
+
+                      <tr>
+
+                        <td>
+                          ${esc(
+                            expense.date
+                          )}
+                        </td>
+
+                        <td>
+                          ${esc(
+                            expense.category
+                          )}
+                        </td>
+
+                        <td>
+                          ${money(
+                            expense.amount
+                          )}
+                        </td>
+
+                        <td>
+                          ${esc(
+                            expense.note ||
+                            "-"
+                          )}
+                        </td>
+
+                        <td>
+
+                          <button
+                            class="btn danger"
+                            onclick="expenseDelete('${esc(
+                              expense.id
+                            )}')"
+                          >
+                            Delete
+                          </button>
+
+                        </td>
+
+                      </tr>
+
+                    `
+                    ).join("")}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
             `
             : empty(
                 "No expenses recorded."
@@ -2295,126 +3311,198 @@ function expenses() {
   `;
 }
 
+
 function expenseModal() {
 
   openModal(`
 
     <div class="modal-head">
 
-      <h3>Add Expense</h3>
+      <h3>
+        Add Expense
+      </h3>
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="expenseForm">
 
       <div class="form-grid">
 
+
         <div class="field">
-          <label>Date</label>
+
+          <label>
+            Date
+          </label>
+
           <input
             name="date"
             type="date"
             value="${today()}"
-            required>
+            required
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Category</label>
+
+          <label>
+            Category
+          </label>
 
           <select name="category">
-            <option>Advertising</option>
-            <option>Packaging</option>
-            <option>Transport</option>
-            <option>Office</option>
-            <option>Other</option>
+
+            <option>
+              Advertising
+            </option>
+
+            <option>
+              Packaging
+            </option>
+
+            <option>
+              Transport
+            </option>
+
+            <option>
+              Office
+            </option>
+
+            <option>
+              Other
+            </option>
+
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Amount</label>
+
+          <label>
+            Amount
+          </label>
 
           <input
             name="amount"
             type="number"
             step=".01"
-            required>
+            required
+          >
+
         </div>
+
 
         <div class="field">
-          <label>Note</label>
+
+          <label>
+            Note
+          </label>
+
           <input name="note">
+
         </div>
 
+
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
-        <button class="btn primary">
+        <button
+          type="submit"
+          class="btn primary"
+        >
           Save Expense
         </button>
 
       </div>
 
     </form>
+
   `);
+
 
   document.getElementById(
     "expenseForm"
-  ).onsubmit = async e => {
+  ).onsubmit =
+    async function (event) {
 
-    e.preventDefault();
+      event.preventDefault();
 
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
 
-    d.amount =
-      Number(d.amount) || 0;
+      const data =
+        Object.fromEntries(
+          new FormData(
+            event.target
+          )
+        );
 
-    const { error } =
-      await sb
+
+      data.amount =
+        Number(
+          data.amount
+        ) || 0;
+
+
+      const {
+        error
+      } = await sb
         .from("expenses")
         .insert({
-          id: id("EXP"),
-          ...d
+
+          id:
+            id("EXP"),
+
+          ...data
+
         });
 
-    if (error) {
+
+      if (error) {
+
+        toast(
+          "Expense save failed: " +
+            error.message,
+          false
+        );
+
+        return;
+      }
+
+
+      closeModal();
 
       toast(
-        "Expense save failed: " +
-          error.message,
-        false
+        "Expense added successfully."
       );
 
-      return;
-    }
 
-    closeModal();
+      await loadAllData();
 
-    toast(
-      "Expense added successfully."
-    );
+      render();
 
-    await loadAllData();
-
-    render();
-  };
+    };
 }
+
 
 /* =========================================================
    ACCOUNTS
@@ -2424,10 +3512,48 @@ function accounts() {
 
   const total =
     db.payments.reduce(
-      (a, p) =>
-        a + Number(p.amount || 0),
+      (total, payment) =>
+        total +
+        Number(
+          payment.amount || 0
+        ),
       0
     );
+
+
+  const mobilePayments =
+    db.payments
+      .filter(
+        payment =>
+          payment.method !==
+          "Bank"
+      )
+      .reduce(
+        (total, payment) =>
+          total +
+          Number(
+            payment.amount || 0
+          ),
+        0
+      );
+
+
+  const bankPayments =
+    db.payments
+      .filter(
+        payment =>
+          payment.method ===
+          "Bank"
+      )
+      .reduce(
+        (total, payment) =>
+          total +
+          Number(
+            payment.amount || 0
+          ),
+        0
+      );
+
 
   return `
     <div class="page">
@@ -2438,129 +3564,152 @@ function accounts() {
         `
         <button
           class="btn primary"
-          onclick="paymentModal()">
+          onclick="paymentModal()"
+        >
           + Supplier Payment
         </button>
 
         <button
           class="btn"
-          onclick="accountModal()">
+          onclick="accountModal()"
+        >
           + My Account
         </button>
         `
       )}
 
+
       <div class="grid3">
 
         <div class="mini">
-          <h4>Total Supplier Payments</h4>
+
+          <h4>
+            Total Supplier Payments
+          </h4>
+
           <strong>
             ${money(total)}
           </strong>
+
         </div>
 
-        <div class="mini">
-          <h4>bKash / Nagad</h4>
-          <strong>
-            ${money(
-              db.payments
-                .filter(
-                  p => p.method !== "Bank"
-                )
-                .reduce(
-                  (a, p) =>
-                    a +
-                    Number(
-                      p.amount || 0
-                    ),
-                  0
-                )
-            )}
-          </strong>
-        </div>
 
         <div class="mini">
-          <h4>Bank</h4>
+
+          <h4>
+            bKash / Nagad
+          </h4>
+
           <strong>
             ${money(
-              db.payments
-                .filter(
-                  p => p.method === "Bank"
-                )
-                .reduce(
-                  (a, p) =>
-                    a +
-                    Number(
-                      p.amount || 0
-                    ),
-                  0
-                )
+              mobilePayments
             )}
           </strong>
+
+        </div>
+
+
+        <div class="mini">
+
+          <h4>
+            Bank
+          </h4>
+
+          <strong>
+            ${money(
+              bankPayments
+            )}
+          </strong>
+
         </div>
 
       </div>
 
+
       <div
         class="card"
-        style="margin-top:14px">
+        style="margin-top:14px"
+      >
 
-        <h3>Payment History</h3>
+        <h3>
+          Payment History
+        </h3>
+
 
         ${
           db.payments.length
             ? `
-              <table class="table">
 
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Supplier</th>
-                    <th>Method</th>
-                    <th>Amount</th>
-                    <th>Note</th>
-                  </tr>
-                </thead>
+              <div class="table-wrap">
 
-                <tbody>
+                <table class="table">
 
-                  ${db.payments.map(p => `
+                  <thead>
 
                     <tr>
-
-                      <td>${esc(
-                        p.date
-                      )}</td>
-
-                      <td>
-                        ${esc(
-                          db.suppliers.find(
-                            s =>
-                              s.id ===
-                              p.supplierId
-                          )?.name || "-"
-                        )}
-                      </td>
-
-                      <td>${esc(
-                        p.method
-                      )}</td>
-
-                      <td>${money(
-                        p.amount
-                      )}</td>
-
-                      <td>${esc(
-                        p.note || "-"
-                      )}</td>
-
+                      <th>Date</th>
+                      <th>Supplier</th>
+                      <th>Method</th>
+                      <th>Amount</th>
+                      <th>Note</th>
                     </tr>
 
-                  `).join("")}
+                  </thead>
 
-                </tbody>
+                  <tbody>
 
-              </table>
+                    ${db.payments.map(
+                      payment => `
+
+                      <tr>
+
+                        <td>
+                          ${esc(
+                            payment.date
+                          )}
+                        </td>
+
+                        <td>
+                          ${esc(
+                            db.suppliers.find(
+                              supplier =>
+                                supplier.id ===
+                                payment.supplierId
+                            )?.name ||
+                              "-"
+                          )}
+                        </td>
+
+                        <td>
+                          ${esc(
+                            payment.method
+                          )}
+                        </td>
+
+                        <td>
+                          ${money(
+                            payment.amount
+                          )}
+                        </td>
+
+                        <td>
+                          ${esc(
+                            payment.note ||
+                            "-"
+                          )}
+                        </td>
+
+                      </tr>
+
+                    `
+                    ).join("")}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
             `
             : empty(
                 "No supplier payments yet."
@@ -2569,37 +3718,54 @@ function accounts() {
 
       </div>
 
+
       <div
         class="card"
-        style="margin-top:14px">
+        style="margin-top:14px"
+      >
 
-        <h3>My Accounts</h3>
+        <h3>
+          My Accounts
+        </h3>
+
 
         <div class="grid3">
 
           ${
-            db.accounts.map(a => `
+            db.accounts.length
+              ? db.accounts
+                  .map(
+                    account => `
 
-              <div class="mini">
+                    <div class="mini">
 
-                <h4>
-                  ${esc(a.type)}
-                </h4>
+                      <h4>
+                        ${esc(
+                          account.type
+                        )}
+                      </h4>
 
-                <strong>
-                  ${esc(a.number)}
-                </strong>
+                      <strong>
+                        ${esc(
+                          account.number
+                        )}
+                      </strong>
 
-                <p class="muted">
-                  ${esc(a.name || "")}
-                </p>
+                      <p class="muted">
+                        ${esc(
+                          account.name ||
+                          ""
+                        )}
+                      </p>
 
-              </div>
+                    </div>
 
-            `).join("") ||
-            empty(
-              "Add your Bank, bKash or Nagad account."
-            )
+                  `
+                  )
+                  .join("")
+              : empty(
+                  "Add your Bank, bKash or Nagad account."
+                )
           }
 
         </div>
@@ -2610,132 +3776,212 @@ function accounts() {
   `;
 }
 
+
+/* =========================================================
+   PAYMENT MODAL
+   ========================================================= */
+
 function paymentModal() {
 
   openModal(`
 
     <div class="modal-head">
 
-      <h3>Supplier Payment</h3>
+      <h3>
+        Supplier Payment
+      </h3>
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="paymentForm">
 
       <div class="form-grid">
 
+
         <div class="field">
-          <label>Date</label>
+
+          <label>
+            Date
+          </label>
 
           <input
             name="date"
             type="date"
-            value="${today()}">
+            value="${today()}"
+          >
+
         </div>
 
+
         <div class="field">
-          <label>Supplier</label>
+
+          <label>
+            Supplier
+          </label>
 
           <select name="supplierId">
+
             ${suppliersOptions()}
+
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Method</label>
+
+          <label>
+            Method
+          </label>
 
           <select name="method">
-            <option>bKash</option>
-            <option>Nagad</option>
-            <option>Bank</option>
+
+            <option>
+              bKash
+            </option>
+
+            <option>
+              Nagad
+            </option>
+
+            <option>
+              Bank
+            </option>
+
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Amount</label>
+
+          <label>
+            Amount
+          </label>
 
           <input
             name="amount"
             type="number"
             step=".01"
-            required>
+            required
+          >
+
         </div>
+
 
         <div class="field fullrow">
-          <label>Note</label>
+
+          <label>
+            Note
+          </label>
+
           <input name="note">
+
         </div>
 
+
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
-        <button class="btn primary">
+        <button
+          type="submit"
+          class="btn primary"
+        >
           Save Payment
         </button>
 
       </div>
 
     </form>
+
   `);
+
 
   document.getElementById(
     "paymentForm"
-  ).onsubmit = async e => {
+  ).onsubmit =
+    async function (event) {
 
-    e.preventDefault();
+      event.preventDefault();
 
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
 
-    d.amount =
-      Number(d.amount) || 0;
+      const data =
+        Object.fromEntries(
+          new FormData(
+            event.target
+          )
+        );
 
-    const { error } =
-      await sb
+
+      data.amount =
+        Number(
+          data.amount
+        ) || 0;
+
+
+      const {
+        error
+      } = await sb
         .from("payments")
         .insert({
-          id: id("PAY"),
-          ...d
+
+          id:
+            id("PAY"),
+
+          ...data
+
         });
 
-    if (error) {
+
+      if (error) {
+
+        toast(
+          "Payment save failed: " +
+            error.message,
+          false
+        );
+
+        return;
+      }
+
+
+      closeModal();
 
       toast(
-        "Payment save failed: " +
-          error.message,
-        false
+        "Supplier payment added successfully."
       );
 
-      return;
-    }
 
-    closeModal();
+      await loadAllData();
 
-    toast(
-      "Supplier payment added successfully."
-    );
+      render();
 
-    await loadAllData();
-
-    render();
-  };
+    };
 }
+
+
+/* =========================================================
+   MY ACCOUNT MODAL
+   ========================================================= */
 
 function accountModal() {
 
@@ -2743,105 +3989,159 @@ function accountModal() {
 
     <div class="modal-head">
 
-      <h3>My Payment Account</h3>
+      <h3>
+        My Payment Account
+      </h3>
 
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <form id="accountForm">
 
       <div class="form-grid">
 
+
         <div class="field">
-          <label>Type</label>
+
+          <label>
+            Type
+          </label>
 
           <select name="type">
-            <option>Bank</option>
-            <option>bKash</option>
-            <option>Nagad</option>
+
+            <option>
+              Bank
+            </option>
+
+            <option>
+              bKash
+            </option>
+
+            <option>
+              Nagad
+            </option>
+
           </select>
+
         </div>
 
+
         <div class="field">
-          <label>Number / Account</label>
+
+          <label>
+            Number / Account
+          </label>
 
           <input
             name="number"
-            required>
+            required
+          >
+
         </div>
+
 
         <div class="field fullrow">
-          <label>Account Name</label>
+
+          <label>
+            Account Name
+          </label>
 
           <input name="name">
+
         </div>
 
+
       </div>
+
 
       <div class="modal-actions">
 
         <button
           type="button"
           class="btn"
-          onclick="closeModal()">
+          onclick="closeModal()"
+        >
           Cancel
         </button>
 
-        <button class="btn primary">
+        <button
+          type="submit"
+          class="btn primary"
+        >
           Save Account
         </button>
 
       </div>
 
     </form>
+
   `);
+
 
   document.getElementById(
     "accountForm"
-  ).onsubmit = async e => {
+  ).onsubmit =
+    async function (event) {
 
-    e.preventDefault();
+      event.preventDefault();
 
-    const d =
-      Object.fromEntries(
-        new FormData(e.target)
-      );
 
-    const { error } =
-      await sb
+      const data =
+        Object.fromEntries(
+          new FormData(
+            event.target
+          )
+        );
+
+
+      const {
+        error
+      } = await sb
         .from("accounts")
         .insert({
-          id: id("ACC"),
-          ...d
+
+          id:
+            id("ACC"),
+
+          ...data
+
         });
 
-    if (error) {
+
+      if (error) {
+
+        toast(
+          "Account save failed: " +
+            error.message,
+          false
+        );
+
+        return;
+      }
+
+
+      closeModal();
 
       toast(
-        "Account save failed: " +
-          error.message,
-        false
+        "Payment account added successfully."
       );
 
-      return;
-    }
 
-    closeModal();
+      await loadAllData();
 
-    toast(
-      "Payment account added successfully."
-    );
+      render();
 
-    await loadAllData();
-
-    render();
-  };
+    };
 }
+
 
 /* =========================================================
    REPORTS
@@ -2857,49 +4157,58 @@ function reports() {
         "Business reports."
       )}
 
+
       <div class="tabs">
 
         <button
           class="tab active"
-          onclick="report('stock',this)">
+          onclick="report('stock',this)"
+        >
           Stock Report
         </button>
 
         <button
           class="tab"
-          onclick="report('sales',this)">
+          onclick="report('sales',this)"
+        >
           Sales Report
         </button>
 
         <button
           class="tab"
-          onclick="report('profit',this)">
+          onclick="report('profit',this)"
+        >
           Profit & Loss
         </button>
 
         <button
           class="tab"
-          onclick="report('customers',this)">
+          onclick="report('customers',this)"
+        >
           Customer Report
         </button>
 
         <button
           class="tab"
-          onclick="report('products',this)">
+          onclick="report('products',this)"
+        >
           Product Report
         </button>
 
         <button
           class="tab"
-          onclick="report('expenses',this)">
+          onclick="report('expenses',this)"
+        >
           Expense Report
         </button>
 
       </div>
 
+
       <div
         id="reportBox"
-        class="card">
+        class="card"
+      >
 
         ${stockReport()}
 
@@ -2909,361 +4218,510 @@ function reports() {
   `;
 }
 
+
 function stockReport() {
 
   return `
-    <h3>Stock Report</h3>
+    <h3>
+      Stock Report
+    </h3>
 
-    <table class="table">
+    <div class="table-wrap">
 
-      <thead>
+      <table class="table">
 
-        <tr>
-          <th>Product</th>
-          <th>Supplier</th>
-          <th>Stock</th>
-          <th>Buy Price</th>
-          <th>Stock Value</th>
-          <th>Status</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${db.products.map(p => `
+        <thead>
 
           <tr>
-
-            <td>${esc(p.name)}</td>
-
-            <td>
-              ${esc(
-                db.suppliers.find(
-                  s =>
-                    s.id ===
-                    p.supplierId
-                )?.name || "-"
-              )}
-            </td>
-
-            <td>${p.stock}</td>
-
-            <td>${money(
-              p.buyPrice
-            )}</td>
-
-            <td>${money(
-              Number(p.stock || 0) *
-              Number(p.buyPrice || 0)
-            )}</td>
-
-            <td>
-              ${
-                Number(p.stock || 0) <=
-                Number(p.reorder || 0)
-                  ? "Low Stock"
-                  : "In Stock"
-              }
-            </td>
-
+            <th>Product</th>
+            <th>Supplier</th>
+            <th>Stock</th>
+            <th>Buy Price</th>
+            <th>Stock Value</th>
+            <th>Status</th>
           </tr>
 
-        `).join("")}
+        </thead>
 
-      </tbody>
+        <tbody>
 
-    </table>
+          ${db.products.map(
+            product => `
 
+            <tr>
+
+              <td>
+                ${esc(
+                  product.name
+                )}
+              </td>
+
+              <td>
+                ${esc(
+                  db.suppliers.find(
+                    supplier =>
+                      supplier.id ===
+                      product.supplierId
+                  )?.name ||
+                    "-"
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  product.stock || 0
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  product.buyPrice
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  Number(
+                    product.stock || 0
+                  ) *
+                  Number(
+                    product.buyPrice || 0
+                  )
+                )}
+              </td>
+
+              <td>
+                ${
+                  Number(
+                    product.stock || 0
+                  ) <=
+                  Number(
+                    product.reorder || 0
+                  )
+                    ? "Low Stock"
+                    : "In Stock"
+                }
+              </td>
+
+            </tr>
+          `
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
   `;
 }
+
 
 function salesReport() {
 
   return `
-    <h3>Sales Report</h3>
+    <h3>
+      Sales Report
+    </h3>
 
     ${
       db.orders.length
         ? orderTable(db.orders)
-        : empty("No sales data.")
+        : empty(
+            "No sales data."
+          )
     }
   `;
 }
+
 
 function profitReport() {
 
   const gross =
     db.orders.reduce(
-      (a, o) =>
-        a + profit(o),
+      (total, order) =>
+        total + profit(order),
       0
     );
 
-  const expenses =
+
+  const expenseTotal =
     db.expenses.reduce(
-      (a, x) =>
-        a + Number(x.amount || 0),
+      (total, expense) =>
+        total +
+        Number(
+          expense.amount || 0
+        ),
       0
     );
+
 
   const net =
-    gross - expenses;
+    gross -
+    expenseTotal;
+
 
   return `
-    <h3>Profit & Loss Report</h3>
+    <h3>
+      Profit & Loss Report
+    </h3>
+
 
     <div class="summary">
 
       <div>
-        <small>Sales</small>
+
+        <small>
+          Sales
+        </small>
+
         <strong>
           ${money(
             db.orders.reduce(
-              (a, o) =>
-                a + sales(o),
+              (total, order) =>
+                total +
+                sales(order),
               0
             )
           )}
         </strong>
+
       </div>
 
+
       <div>
-        <small>Gross Profit</small>
+
+        <small>
+          Gross Profit
+        </small>
+
         <strong>
           ${money(gross)}
         </strong>
+
       </div>
 
+
       <div>
-        <small>Expenses</small>
+
+        <small>
+          Expenses
+        </small>
+
         <strong>
-          ${money(expenses)}
+          ${money(
+            expenseTotal
+          )}
         </strong>
+
       </div>
 
+
       <div>
-        <small>Net Profit / Loss</small>
+
+        <small>
+          Net Profit / Loss
+        </small>
+
         <strong>
           ${money(net)}
         </strong>
+
       </div>
 
     </div>
   `;
 }
 
+
 function customerReport() {
 
   return `
-    <h3>Customer Report</h3>
+    <h3>
+      Customer Report
+    </h3>
 
-    <table class="table">
+    <div class="table-wrap">
 
-      <thead>
+      <table class="table">
 
-        <tr>
-          <th>Customer</th>
-          <th>Phone</th>
-          <th>Orders</th>
-          <th>Sales</th>
-          <th>Profit</th>
-        </tr>
+        <thead>
 
-      </thead>
+          <tr>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Orders</th>
+            <th>Sales</th>
+            <th>Profit</th>
+          </tr>
 
-      <tbody>
+        </thead>
 
-        ${db.customers.map(c => {
+        <tbody>
 
-          const os =
-            db.orders.filter(
-              o =>
-                o.customerId === c.id
-            );
+          ${db.customers.map(
+            customer => {
 
-          return `
-            <tr>
+              const orders =
+                db.orders.filter(
+                  order =>
+                    order.customerId ===
+                    customer.id
+                );
 
-              <td>${esc(c.name)}</td>
 
-              <td>${esc(c.phone)}</td>
+              return `
 
-              <td>${os.length}</td>
+                <tr>
 
-              <td>
-                ${money(
-                  os.reduce(
-                    (a, o) =>
-                      a + sales(o),
-                    0
-                  )
-                )}
-              </td>
+                  <td>
+                    ${esc(
+                      customer.name
+                    )}
+                  </td>
 
-              <td>
-                ${money(
-                  os.reduce(
-                    (a, o) =>
-                      a + profit(o),
-                    0
-                  )
-                )}
-              </td>
+                  <td>
+                    ${esc(
+                      customer.phone
+                    )}
+                  </td>
 
-            </tr>
-          `;
+                  <td>
+                    ${orders.length}
+                  </td>
 
-        }).join("")}
+                  <td>
+                    ${money(
+                      orders.reduce(
+                        (total, order) =>
+                          total +
+                          sales(order),
+                        0
+                      )
+                    )}
+                  </td>
 
-      </tbody>
+                  <td>
+                    ${money(
+                      orders.reduce(
+                        (total, order) =>
+                          total +
+                          profit(order),
+                        0
+                      )
+                    )}
+                  </td>
 
-    </table>
+                </tr>
+
+              `;
+
+            }
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
   `;
 }
+
 
 function productReport() {
 
   return `
-    <h3>Product Report</h3>
+    <h3>
+      Product Report
+    </h3>
 
-    <table class="table">
+    <div class="table-wrap">
 
-      <thead>
+      <table class="table">
 
-        <tr>
-          <th>Product</th>
-          <th>Units Sold</th>
-          <th>Sales</th>
-          <th>Profit</th>
-        </tr>
+        <thead>
 
-      </thead>
+          <tr>
+            <th>Product</th>
+            <th>Units Sold</th>
+            <th>Sales</th>
+            <th>Profit</th>
+          </tr>
 
-      <tbody>
+        </thead>
 
-        ${db.products.map(p => {
+        <tbody>
 
-          const os =
-            db.orders.filter(
-              o =>
-                o.productId === p.id
-            );
+          ${db.products.map(
+            product => {
 
-          return `
-            <tr>
+              const orders =
+                db.orders.filter(
+                  order =>
+                    order.productId ===
+                    product.id
+                );
 
-              <td>
-                ${esc(p.name)}
-              </td>
 
-              <td>
-                ${os.reduce(
-                  (a, o) =>
-                    a +
-                    Number(
-                      o.quantity || 0
-                    ),
-                  0
-                )}
-              </td>
+              return `
 
-              <td>
-                ${money(
-                  os.reduce(
-                    (a, o) =>
-                      a + sales(o),
-                    0
-                  )
-                )}
-              </td>
+                <tr>
 
-              <td>
-                ${money(
-                  os.reduce(
-                    (a, o) =>
-                      a + profit(o),
-                    0
-                  )
-                )}
-              </td>
+                  <td>
+                    ${esc(
+                      product.name
+                    )}
+                  </td>
 
-            </tr>
-          `;
+                  <td>
+                    ${orders.reduce(
+                      (total, order) =>
+                        total +
+                        Number(
+                          order.quantity ||
+                          0
+                        ),
+                      0
+                    )}
+                  </td>
 
-        }).join("")}
+                  <td>
+                    ${money(
+                      orders.reduce(
+                        (total, order) =>
+                          total +
+                          sales(order),
+                        0
+                      )
+                    )}
+                  </td>
 
-      </tbody>
+                  <td>
+                    ${money(
+                      orders.reduce(
+                        (total, order) =>
+                          total +
+                          profit(order),
+                        0
+                      )
+                    )}
+                  </td>
 
-    </table>
+                </tr>
+
+              `;
+
+            }
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
   `;
 }
+
 
 function expenseReport() {
 
   return `
-    <h3>Expense Report</h3>
+    <h3>
+      Expense Report
+    </h3>
 
-    <table class="table">
+    <div class="table-wrap">
 
-      <thead>
+      <table class="table">
 
-        <tr>
-          <th>Date</th>
-          <th>Category</th>
-          <th>Amount</th>
-          <th>Note</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${db.expenses.map(x => `
+        <thead>
 
           <tr>
-
-            <td>${esc(x.date)}</td>
-
-            <td>${esc(
-              x.category
-            )}</td>
-
-            <td>${money(
-              x.amount
-            )}</td>
-
-            <td>${esc(
-              x.note || "-"
-            )}</td>
-
+            <th>Date</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Note</th>
           </tr>
 
-        `).join("")}
+        </thead>
 
-      </tbody>
+        <tbody>
 
-    </table>
+          ${db.expenses.map(
+            expense => `
+
+            <tr>
+
+              <td>
+                ${esc(
+                  expense.date
+                )}
+              </td>
+
+              <td>
+                ${esc(
+                  expense.category
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  expense.amount
+                )}
+              </td>
+
+              <td>
+                ${esc(
+                  expense.note ||
+                  "-"
+                )}
+              </td>
+
+            </tr>
+
+          `
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
   `;
 }
 
-function report(type, button) {
+
+function report(
+  type,
+  button
+) {
 
   document
-    .querySelectorAll(".tab")
+    .querySelectorAll(
+      ".tab"
+    )
     .forEach(
-      x =>
-        x.classList.remove(
+      tab =>
+        tab.classList.remove(
           "active"
         )
     );
 
-  button.classList.add("active");
+
+  if (button) {
+    button.classList.add(
+      "active"
+    );
+  }
+
 
   const box =
     document.getElementById(
       "reportBox"
     );
+
+
+  if (!box) return;
+
 
   if (type === "stock") {
     box.innerHTML =
@@ -3296,6 +4754,7 @@ function report(type, button) {
   }
 }
 
+
 /* =========================================================
    SETTINGS
    ========================================================= */
@@ -3308,16 +4767,22 @@ function settings() {
       ${head(
         "Settings",
         "Business and data settings.",
-        `<button
+        `
+        <button
           class="btn primary"
-          onclick="saveSettings()">
+          onclick="saveSettings()"
+        >
           Save
-        </button>`
+        </button>
+        `
       )}
+
 
       <div class="card">
 
+
         <div class="form-grid">
+
 
           <div class="field">
 
@@ -3329,9 +4794,11 @@ function settings() {
               id="sname"
               value="${esc(
                 db.settings.name
-              )}">
+              )}"
+            >
 
           </div>
+
 
           <div class="field">
 
@@ -3343,23 +4810,29 @@ function settings() {
               id="scurrency"
               value="${esc(
                 db.settings.currency
-              )}">
+              )}"
+            >
 
           </div>
 
+
         </div>
+
 
         <div class="setting">
 
           <div>
+
             <b>
               Success notifications
             </b>
 
             <div class="muted">
-              Show success notification after saving.
+              Show success notifications.
             </div>
+
           </div>
+
 
           <div
             id="toggle"
@@ -3370,28 +4843,37 @@ function settings() {
             }"
             onclick="
               this.classList.toggle('on')
-            ">
-          </div>
+            "
+          ></div>
 
         </div>
+
 
         <div class="setting">
 
           <div>
-            <b>Export Backup</b>
+
+            <b>
+              Export Backup
+            </b>
 
             <div class="muted">
               Download ERP data.
             </div>
+
           </div>
+
 
           <button
             class="btn"
-            onclick="backup()">
+            onclick="backup()"
+            type="button"
+          >
             Export Backup
           </button>
 
         </div>
+
 
       </div>
 
@@ -3399,39 +4881,59 @@ function settings() {
   `;
 }
 
+
 async function saveSettings() {
 
+  const name =
+    document.getElementById(
+      "sname"
+    )?.value ||
+    "Al Furqun";
+
+
+  const currency =
+    document.getElementById(
+      "scurrency"
+    )?.value ||
+    "৳";
+
+
+  const notify =
+    document
+      .getElementById(
+        "toggle"
+      )
+      ?.classList.contains(
+        "on"
+      ) ??
+    true;
+
+
   const data = {
-    name:
-      document.getElementById(
-        "sname"
-      ).value,
 
-    currency:
-      document.getElementById(
-        "scurrency"
-      ).value,
+    name,
 
-    notify:
-      document
-        .getElementById(
-          "toggle"
-        )
-        .classList.contains("on")
+    currency,
+
+    notify
+
   };
 
-  const { error } =
-    await sb
-      .from("settings")
-      .upsert(
-        {
-          id: 1,
-          ...data
-        },
-        {
-          onConflict: "id"
-        }
-      );
+
+  const {
+    error
+  } = await sb
+    .from("settings")
+    .upsert(
+      {
+        id: 1,
+        ...data
+      },
+      {
+        onConflict: "id"
+      }
+    );
+
 
   if (error) {
 
@@ -3444,31 +4946,51 @@ async function saveSettings() {
     return;
   }
 
+
   db.settings = {
+
     ...db.settings,
+
     ...data
+
   };
+
 
   toast(
     "Settings saved successfully."
   );
 
+
   render();
 }
+
 
 /* =========================================================
    VIEW ORDER
    ========================================================= */
 
-function viewOrder(orderId) {
+function viewOrder(
+  orderId
+) {
 
-  const o =
+  const order =
     db.orders.find(
-      x =>
-        x.id === orderId
+      item =>
+        item.id ===
+        orderId
     );
 
-  if (!o) return;
+
+  if (!order) {
+
+    toast(
+      "Order not found.",
+      false
+    );
+
+    return;
+  }
+
 
   openModal(`
 
@@ -3477,101 +4999,187 @@ function viewOrder(orderId) {
       <div>
 
         <h3>
-          Order ${esc(o.id)}
+          Order ${esc(
+            order.id
+          )}
         </h3>
 
         <div class="muted">
-          ${esc(o.date)} •
-          ${esc(o.source)}
+          ${esc(
+            order.date
+          )}
+          •
+          ${esc(
+            order.source
+          )}
         </div>
 
       </div>
 
+
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <div class="summary">
 
       <div>
-        <small>Customer</small>
+
+        <small>
+          Customer
+        </small>
+
         <strong>
-          ${esc(o.customerName)}
+          ${esc(
+            order.customerName
+          )}
         </strong>
+
       </div>
 
-      <div>
-        <small>Sales</small>
-        <strong>
-          ${money(sales(o))}
-        </strong>
-      </div>
 
       <div>
-        <small>Profit</small>
+
+        <small>
+          Sales
+        </small>
+
         <strong>
-          ${money(profit(o))}
+          ${money(
+            sales(order)
+          )}
         </strong>
+
       </div>
 
+
       <div>
-        <small>Status</small>
+
+        <small>
+          Profit
+        </small>
+
         <strong>
-          ${badge(o.status)}
+          ${money(
+            profit(order)
+          )}
         </strong>
+
+      </div>
+
+
+      <div>
+
+        <small>
+          Status
+        </small>
+
+        <strong>
+          ${badge(
+            order.status
+          )}
+        </strong>
+
       </div>
 
     </div>
 
+
     <p>
 
-      <b>Phone:</b>
-      ${esc(o.phone)}
+      <b>
+        Phone:
+      </b>
+
+      ${esc(
+        order.phone
+      )}
+
       <br>
 
-      <b>Address:</b>
-      ${esc(o.address)}
+      <b>
+        Address:
+      </b>
+
+      ${esc(
+        order.address
+      )}
+
       <br>
 
-      <b>Product:</b>
-      ${esc(o.productName)}
-      × ${o.quantity}
+      <b>
+        Product:
+      </b>
+
+      ${esc(
+        order.productName
+      )}
+
+      ×
+      ${Number(
+        order.quantity || 0
+      )}
+
       <br>
 
-      <b>Courier:</b>
-      ${esc(o.courier)}
+      <b>
+        Courier:
+      </b>
+
+      ${esc(
+        order.courier
+      )}
+
       <br>
 
-      <b>Tracking:</b>
+      <b>
+        Tracking:
+      </b>
+
       ${
-        o.trackingLink
-          ? `<a
+        order.trackingLink
+          ? `
+            <a
               href="${esc(
-                o.trackingLink
+                order.trackingLink
               )}"
-              target="_blank">
+              target="_blank"
+              rel="noopener"
+            >
               Open
-            </a>`
+            </a>
+          `
           : "-"
       }
 
     </p>
 
+
     <div class="modal-actions">
 
       <button
         class="btn"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         Close
       </button>
 
+
       <button
         class="btn"
-        onclick="orderEdit('${o.id}')">
+        onclick="orderEdit('${esc(
+          order.id
+        )}')"
+        type="button"
+      >
         Edit
       </button>
 
@@ -3580,40 +5188,59 @@ function viewOrder(orderId) {
   `);
 }
 
-function orderEdit(orderId) {
 
-  const o =
+function orderEdit(
+  orderId
+) {
+
+  const order =
     db.orders.find(
-      x =>
-        x.id === orderId
+      item =>
+        item.id ===
+        orderId
     );
+
 
   closeModal();
 
-  if (o) {
-    orderModal(o);
+
+  if (order) {
+
+    orderModal(
+      order
+    );
+
   }
+
 }
+
 
 /* =========================================================
    CUSTOMER
    ========================================================= */
 
-function customerView(cid) {
+function customerView(
+  customerId
+) {
 
-  const c =
+  const customer =
     db.customers.find(
-      x =>
-        x.id === cid
+      item =>
+        item.id ===
+        customerId
     );
 
-  if (!c) return;
 
-  const os =
+  if (!customer) return;
+
+
+  const orders =
     db.orders.filter(
-      x =>
-        x.customerId === cid
+      order =>
+        order.customerId ===
+        customerId
     );
+
 
   openModal(`
 
@@ -3622,38 +5249,55 @@ function customerView(cid) {
       <div>
 
         <h3>
-          ${esc(c.name)}
+          ${esc(
+            customer.name
+          )}
         </h3>
 
         <div class="muted">
-          ${esc(c.phone)}
+          ${esc(
+            customer.phone
+          )}
         </div>
 
       </div>
 
+
       <button
         class="close"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
+
     <p>
-      ${esc(c.address || "")}
+      ${esc(
+        customer.address ||
+        ""
+      )}
     </p>
 
+
     ${
-      os.length
-        ? orderTable(os)
-        : empty("No history.")
+      orders.length
+        ? orderTable(orders)
+        : empty(
+            "No order history."
+          )
     }
+
 
     <div class="modal-actions">
 
       <button
         class="btn"
-        onclick="closeModal()">
+        onclick="closeModal()"
+        type="button"
+      >
         Close
       </button>
 
@@ -3662,66 +5306,127 @@ function customerView(cid) {
   `);
 }
 
-function customerEdit(cid) {
 
-  const c =
+function customerEdit(
+  customerId
+) {
+
+  const customer =
     db.customers.find(
-      x =>
-        x.id === cid
+      item =>
+        item.id ===
+        customerId
     );
 
-  const o =
+
+  if (!customer) return;
+
+
+  const order =
     db.orders.find(
-      x =>
-        x.customerId === cid
+      item =>
+        item.customerId ===
+        customerId
     );
+
 
   closeModal();
 
-  if (o) {
-    orderModal(o);
+
+  if (order) {
+
+    orderModal(
+      order
+    );
+
   } else {
 
     orderModal({
-      id: id("ORD"),
-      date: today(),
-      customerId: cid,
-      customerName: c.name,
-      phone: c.phone,
-      address: c.address,
-      source: "Marketplace",
-      status: "Pending",
-      quantity: 1
+
+      id:
+        id("ORD"),
+
+      date:
+        today(),
+
+      customerId:
+        customerId,
+
+      customerName:
+        customer.name,
+
+      phone:
+        customer.phone,
+
+      address:
+        customer.address,
+
+      source:
+        "Marketplace",
+
+      status:
+        "Pending",
+
+      quantity:
+        1
+
     });
 
   }
 }
 
+
 /* =========================================================
    DELETE
    ========================================================= */
 
-async function customerDelete(cid) {
+async function customerDelete(
+  customerId
+) {
 
   if (
     !confirm(
       "Delete customer and all their orders?"
     )
-  ) return;
+  ) {
+    return;
+  }
 
-  await sb
+
+  const {
+    error:
+      orderError
+  } = await sb
     .from("orders")
     .delete()
     .eq(
       "customerId",
-      cid
+      customerId
     );
 
-  const { error } =
-    await sb
-      .from("customers")
-      .delete()
-      .eq("id", cid);
+
+  if (orderError) {
+
+    toast(
+      "Orders could not be deleted: " +
+        orderError.message,
+      false
+    );
+
+    return;
+  }
+
+
+  const {
+    error
+  } = await sb
+    .from("customers")
+    .delete()
+    .eq(
+      "id",
+      customerId
+    );
+
 
   if (error) {
 
@@ -3734,28 +5439,41 @@ async function customerDelete(cid) {
     return;
   }
 
+
   toast(
     "Customer deleted."
   );
+
 
   await loadAllData();
 
   render();
 }
 
-async function productDelete(pid) {
+
+async function productDelete(
+  productId
+) {
 
   if (
     !confirm(
       "Delete this product?"
     )
-  ) return;
+  ) {
+    return;
+  }
 
-  const { error } =
-    await sb
-      .from("products")
-      .delete()
-      .eq("id", pid);
+
+  const {
+    error
+  } = await sb
+    .from("products")
+    .delete()
+    .eq(
+      "id",
+      productId
+    );
+
 
   if (error) {
 
@@ -3768,28 +5486,41 @@ async function productDelete(pid) {
     return;
   }
 
+
   toast(
     "Product deleted."
   );
+
 
   await loadAllData();
 
   render();
 }
 
-async function supplierDelete(sid) {
+
+async function supplierDelete(
+  supplierId
+) {
 
   if (
     !confirm(
       "Delete this supplier?"
     )
-  ) return;
+  ) {
+    return;
+  }
 
-  const { error } =
-    await sb
-      .from("suppliers")
-      .delete()
-      .eq("id", sid);
+
+  const {
+    error
+  } = await sb
+    .from("suppliers")
+    .delete()
+    .eq(
+      "id",
+      supplierId
+    );
+
 
   if (error) {
 
@@ -3802,22 +5533,41 @@ async function supplierDelete(sid) {
     return;
   }
 
+
   toast(
     "Supplier deleted."
   );
+
 
   await loadAllData();
 
   render();
 }
 
-async function expenseDelete(eid) {
 
-  const { error } =
-    await sb
-      .from("expenses")
-      .delete()
-      .eq("id", eid);
+async function expenseDelete(
+  expenseId
+) {
+
+  if (
+    !confirm(
+      "Delete this expense?"
+    )
+  ) {
+    return;
+  }
+
+
+  const {
+    error
+  } = await sb
+    .from("expenses")
+    .delete()
+    .eq(
+      "id",
+      expenseId
+    );
+
 
   if (error) {
 
@@ -3830,14 +5580,17 @@ async function expenseDelete(eid) {
     return;
   }
 
+
   toast(
     "Expense deleted."
   );
+
 
   await loadAllData();
 
   render();
 }
+
 
 /* =========================================================
    BACKUP
@@ -3845,41 +5598,219 @@ async function expenseDelete(eid) {
 
 function backup() {
 
-  const data =
+  const json =
     JSON.stringify(
       db,
       null,
       2
     );
 
+
   const blob =
     new Blob(
-      [data],
+      [json],
       {
         type:
           "application/json"
       }
     );
 
+
   const url =
     URL.createObjectURL(
       blob
     );
 
-  const a =
+
+  const link =
     document.createElement(
       "a"
     );
 
-  a.href = url;
 
-  a.download =
+  link.href =
+    url;
+
+
+  link.download =
     "al-furqun-erp-backup.json";
 
-  a.click();
 
-  URL.revokeObjectURL(url);
+  document.body.appendChild(
+    link
+  );
+
+
+  link.click();
+
+
+  link.remove();
+
+
+  URL.revokeObjectURL(
+    url
+  );
 }
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function globalSearch() {
+
+  const input =
+    document.getElementById(
+      "search"
+    );
+
+
+  if (!input) return;
+
+
+  const value =
+    input.value
+      .toLowerCase()
+      .trim();
+
+
+  if (!value) return;
+
+
+  const order =
+    db.orders.find(
+      item =>
+        [
+          item.id,
+          item.customerName,
+          item.phone,
+          item.productName
+        ].some(
+          field =>
+            String(
+              field || ""
+            )
+              .toLowerCase()
+              .includes(value)
+        )
+    );
+
+
+  if (order) {
+
+    page = "orders";
+
+    render();
+
+    setTimeout(
+      () =>
+        viewOrder(
+          order.id
+        ),
+      100
+    );
+
+    return;
+  }
+
+
+  const product =
+    db.products.find(
+      item =>
+        String(
+          item.name || ""
+        )
+          .toLowerCase()
+          .includes(value)
+    );
+
+
+  if (product) {
+
+    page = "products";
+
+    render();
+
+    return;
+  }
+
+
+  const customer =
+    db.customers.find(
+      item =>
+        [
+          item.name,
+          item.phone
+        ].some(
+          field =>
+            String(
+              field || ""
+            )
+              .toLowerCase()
+              .includes(value)
+        )
+    );
+
+
+  if (customer) {
+
+    page = "customers";
+
+    render();
+
+    return;
+  }
+
+
+  toast(
+    "Nothing found."
+  );
+}
+
+
+/* =========================================================
+   BIND
+   ========================================================= */
+
+function bind() {
+
+  const customerSearch =
+    document.getElementById(
+      "customerSearch"
+    );
+
+
+  if (customerSearch) {
+
+    customerSearch.oninput =
+      function () {
+
+        render();
+
+      };
+
+  }
+
+
+  const productSearch =
+    document.getElementById(
+      "productSearch"
+    );
+
+
+  if (productSearch) {
+
+    productSearch.oninput =
+      function () {
+
+        render();
+
+      };
+
+  }
+
+}
+
 
 /* =========================================================
    LOGIN
@@ -3890,18 +5821,15 @@ async function loginUser() {
   const username =
     document.getElementById(
       "username"
-    ).value.trim();
+    )?.value
+      ?.trim();
+
 
   const password =
     document.getElementById(
       "password"
-    ).value;
+    )?.value;
 
-  /*
-     IMPORTANT:
-     এই login এখন local admin login.
-     Supabase database আলাদা ভাবে কাজ করবে.
-  */
 
   if (
     username === "admin" &&
@@ -3913,9 +5841,11 @@ async function loginUser() {
       "1"
     );
 
+
     await loadAllData();
 
     render();
+
 
   } else {
 
@@ -3927,26 +5857,23 @@ async function loginUser() {
   }
 }
 
+
 /* =========================================================
    INIT
    ========================================================= */
 
 async function init() {
 
-  try {
+  console.log(
+    "Al Furqun ERP starting..."
+  );
 
-    await loadSupabase();
 
-    console.log(
-      "Supabase connected."
-    );
+  const connected =
+    loadSupabase();
 
-  } catch (error) {
 
-    console.error(
-      "Supabase connection failed:",
-      error
-    );
+  if (!connected) {
 
     toast(
       "Supabase connection failed.",
@@ -3956,101 +5883,150 @@ async function init() {
     return;
   }
 
+
   const loginForm =
     document.getElementById(
       "loginForm"
     );
 
+
   if (loginForm) {
 
-    loginForm.onsubmit =
-      async e => {
+    loginForm.addEventListener(
+      "submit",
+      async function (event) {
 
-        e.preventDefault();
+        event.preventDefault();
 
         await loginUser();
 
-      };
+      }
+    );
+
   }
+
 
   const logout =
     document.getElementById(
       "logout"
     );
 
+
   if (logout) {
 
-    logout.onclick = () => {
+    logout.onclick =
+      function () {
 
-      sessionStorage.removeItem(
-        "af"
-      );
-
-      document
-        .getElementById(
-          "app"
-        )
-        .classList.add(
-          "hidden"
+        sessionStorage.removeItem(
+          "af"
         );
 
-      document
-        .getElementById(
-          "login"
-        )
-        .classList.remove(
-          "hidden"
-        );
 
-    };
+        document
+          .getElementById(
+            "app"
+          )
+          ?.classList.add(
+            "hidden"
+          );
+
+
+        document
+          .getElementById(
+            "login"
+          )
+          ?.classList.remove(
+            "hidden"
+          );
+
+      };
 
   }
+
 
   const menu =
     document.getElementById(
       "menu"
     );
 
+
   if (menu) {
 
-    menu.onclick = () => {
-
-      document
-        .getElementById(
-          "sidebar"
-        )
-        .classList.toggle(
-          "open"
-        );
-
-    };
-
-  }
-
-  document
-    .querySelectorAll(
-      "nav button"
-    )
-    .forEach(button => {
-
-      button.onclick = () => {
-
-        page =
-          button.dataset.page;
-
-        render();
+    menu.onclick =
+      function () {
 
         document
           .getElementById(
             "sidebar"
           )
-          .classList.remove(
+          ?.classList.toggle(
             "open"
           );
 
       };
 
-    });
+  }
+
+
+  document
+    .querySelectorAll(
+      "nav button"
+    )
+    .forEach(
+      button => {
+
+        button.onclick =
+          function () {
+
+            page =
+              button.dataset.page;
+
+
+            render();
+
+
+            document
+              .getElementById(
+                "sidebar"
+              )
+              ?.classList.remove(
+                "open"
+              );
+
+          };
+
+      }
+    );
+
+
+  const search =
+    document.getElementById(
+      "search"
+    );
+
+
+  if (search) {
+
+    search.addEventListener(
+      "keydown",
+      function (event) {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          event.preventDefault();
+
+          globalSearch();
+
+        }
+
+      }
+    );
+
+  }
+
 
   if (
     sessionStorage.getItem(
@@ -4066,8 +6042,12 @@ async function init() {
 
 }
 
+
 /* =========================================================
    START
    ========================================================= */
 
-init();
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
